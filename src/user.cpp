@@ -6,8 +6,13 @@ User::User(std::string name)
 
 }
 
-User::User(std::string name, std::string phoneNumer = "", double balance = 0.0)
-: m_userName(name), m_phoneNumber(phoneNumer), m_balance(balance)
+User::User(const std::string& name, const std::string& phoneNumber, double balance)
+: m_userName(name), m_phoneNumber(phoneNumber), m_balance(balance)
 {
 
+}
+
+void User::rename(const std::string& newName)
+{
+    m_userName = newName;
 }

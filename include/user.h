@@ -8,12 +8,12 @@ class User {
         int             m_id;
         std::string     m_userName;
         std::string     m_passWord;
-        std::string     m_phoneNumer;
+        std::string     m_phoneNumber;
         double          m_balance;
 
     public:
         User(std::string name);
-        User(std::string name, std::string number = 0, double balance = 0.0);
+        User(const std::string& name, const std::string& phoneNumber = "", double balance = 0.0);
         void rename(const std::string&);
         
 };
