@@ -1,38 +1,23 @@
 #ifndef STATUS_SERVICE_H
 #define STATUS_SERVICE_H
 
-typedef enum LOGIN_STATUS {
-    LOGIN_SUCCESS,
-    LOGIN_FAILURE,
-    LOGOUT_SUCCESS,
-    LOGOUT_FAILURE
-} LOGIN_STATUS;
+enum class LoginStatus {
+    Success,
+    Failure,
+    LogoutSuccess,
+    LogoutFailure
+};
 
-typedef enum ACCOUNT_STATUS {
-    ACCOUNT_CREATED,
-    ACCOUNT_DELETED,
-    ACCOUNT_NOT_FOUND,
-    INSUFFICIENT_FUNDS
-} ACCOUNT_STATUS;
+enum class AccountStatus {
+    Created,
+    Deleted,
+    NotFound,
+    InsufficientFunds
+};
 
-typedef enum TRANSACTION_STATUS {
-    TRANSACTION_SUCCESS,
-    TRANSACTION_FAILURE
-} TRANSACTION_STATUS;
-
-typedef enum BALANCE_STATUS {
-    BALANCE_CHECK_SUCCESS,
-    BALANCE_CHECK_FAILURE
-} BALANCE_STATUS;
-
-typedef enum DEPOSIT_STATUS {
-    DEPOSIT_SUCCESS,
-    DEPOSIT_FAILURE
-} DEPOSIT_STATUS;
-
-typedef enum WITHDRAWAL_STATUS {
-    WITHDRAWAL_SUCCESS,
-    WITHDRAWAL_FAILURE
-} WITHDRAWAL_STATUS;
+enum class TransactionStatus {
+    Success,
+    Failure
+};
 
 #endif

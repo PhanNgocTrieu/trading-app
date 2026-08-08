@@ -1,51 +1,48 @@
-#include <iostream>
-#include "login.h"
-#include "logger.hpp"
-#include <signal.h>
-#include <atomic>
-#include <thread>
-#include <chrono>
+#include "bank.h"
 #include "dashboard.h"
+#include "logger.hpp"
+#include "login.h"
 
-using namespace std;
+#include <atomic>
+#include <chrono>
+#include <csignal>
+#include <iostream>
+#include <thread>
 
-std::atomic<bool> g_running(true);
+namespace {
+std::atomic<bool> g_running{true};
 
 void handleSignal(int signal) {
     if (signal == SIGINT) {
         g_running = false;
     }
 }
-
+} // namespace
 
 int main() {
-    // Setup signal handler for graceful shutdown
-    Service::LoginService& loginService = Service::LoginService::getInstance();
-    Service::LoggerService& loggerService = Service::LoggerService::getInstance();
-    Dashboard& dashboard = Dashboard::getInstance("Trading App Dashboard");
+    Service::LoggerService& logger = Service::LoggerService::getInstance();
+    Service::LoginService loginService{logger};
+    Service::BankAccountService bankService{logger};
+    Dashboard dashboard{"Trading App Dashboard", loginService, bankService, logger};
 
-    // connect signal handler
-    signal(SIGINT, handleSignal);
-
+    std::signal(SIGINT, handleSignal);
+    logger.logInfo("Trading app Phase 0 started (C++17, in-memory domain).");
 
     while (g_running) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        system("clear"); // Clear the console for better readability.
+        if (!loginService.isLoggedIn()) {
+            logger.logInfo("User is not logged in. Please log in to access the dashboard.");
+            dashboard.showLoginDashboard();
+            loginService.requestLogin();
+            continue;
+        }
 
-        do {
-            if (!loginService.getLoginStatus()) {
-                loggerService.logInfo("User is not logged in. Please log in to access the dashboard.");
-                dashboard.showLoginDashboard();
-                loginService.requestLogin();
-                break; // Exit the do-while loop if not logged in
-            }
-            
-            dashboard.showDashboard();
-            dashboard.actionDashboard();
-        } while (0);
-        // Simulate some work
-        
+        dashboard.showDashboard();
+        dashboard.actionDashboard();
+
+        // Small pause so the console is readable between actions.
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
+    logger.logInfo("Shutting down.");
     return 0;
 }

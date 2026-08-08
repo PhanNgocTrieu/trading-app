@@ -1,21 +1,14 @@
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set(HEADER_FILES
-    bank.h
-    login.h
-    service.h
-    logger.hpp
-)
-
-set (SOURCE_FILES
+add_library(service
     service.cpp
     login.cpp
     bank.cpp
 )
 
-add_library(service SHARED
-    ${HEADER_FILES}
-    ${SOURCE_FILES}
+target_include_directories(service
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/include
 )
+
+target_compile_features(service PUBLIC cxx_std_17)
+target_compile_options(service PRIVATE -Wall -Wextra -Wpedantic)

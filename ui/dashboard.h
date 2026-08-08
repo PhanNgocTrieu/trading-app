@@ -1,43 +1,37 @@
 #ifndef DASHBOARD_H
 #define DASHBOARD_H
 
-#include <iostream>
+#include "bank.h"
+#include "logger.hpp"
+#include "login.h"
+
+#include <string>
 
 class Dashboard {
-    public:
-        static Dashboard& getInstance(const std::string& title = "Dashboard") {
-            static Dashboard instance;
-            instance.m_dashboardTitle = title;
-            return instance;
-        }
-        
-        void showLoginDashboard() {
-            std::cout << "=== " << m_dashboardTitle << " ===" << std::endl;
-            std::cout << "Please log in to access the dashboard." << std::endl;
-            std::cout << "=== End of Dashboard ===" << std::endl;
-        }
+public:
+    Dashboard(std::string title,
+              Service::LoginService& loginService,
+              Service::BankAccountService& bankService,
+              Service::LoggerService& loggerService);
 
-        void showDashboard();
+    void showLoginDashboard() const;
+    void showDashboard() const;
+    void actionDashboard();
 
-        void setTitle(const std::string& title) {
-            m_dashboardTitle = title;
-        }
+private:
+    void drawHeader() const;
+    void drawFooter() const;
+    void drawContent() const;
 
-        void actionDashboard();
+    void viewAccount() const;
+    void depositFunds();
+    void withdrawFunds();
+    void tradeStocksPlaceholder() const;
 
-    private:
-        Dashboard() = default;
-        Dashboard(const Dashboard&) = delete;
-        Dashboard& operator=(const Dashboard&) = delete;
-        
-        void drawHeader();
-        void drawFooter();
-        void drawContent();
-
-        std::string m_dashboardTitle;
-
+    std::string title_;
+    Service::LoginService& loginService_;
+    Service::BankAccountService& bankService_;
+    Service::LoggerService& loggerService_;
 };
-
-
 
 #endif

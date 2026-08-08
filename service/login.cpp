@@ -1,45 +1,62 @@
 #include "login.h"
 
+#include <iostream>
+
 namespace Service {
 
-    LOGIN_STATUS LoginService::login(const std::string& username, const std::string& password) {
+LoginService::LoginService(LoggerService& logger)
+    : logger_(logger) {}
 
-        if (username.empty() || password.empty()) {
-            return LOGIN_FAILURE; // Return failure if username or password is empty
-        }
-
-        // Implementation for user login
-        return LOGIN_SUCCESS; // Placeholder return value
-    }
-
-    LOGIN_STATUS LoginService::logout(const std::string& username) {
-
-        // Logging out of account
-        
-        // Update Status of signin
-
-        // Implementation for user logout
-        return LOGOUT_SUCCESS; // Placeholder return value
-    }
-
-    LOGIN_STATUS LoginService::requestLogin() {
-        std::string username;
-        std::string password;
-
-        std::cout << "Enter username: ";
-        std::getline(std::cin, username);
-        std::cout << "Enter password: ";
-        std::getline(std::cin, password);
-
-        LOGIN_STATUS status = login(username, password);
-        if (status == LOGIN_SUCCESS) {
-            m_loginStatus = true;
-            std::cout << "Login successful!" << std::endl;
-        } else {
-            m_loginStatus = false;
-            std::cout << "Login failed!" << std::endl;
-        }
-        return status;
-    }
-    
+bool LoginService::isLoggedIn() const {
+    return loggedIn_ && currentSession().has_value();
 }
+
+const Session* LoginService::session() const {
+    if (!currentSession()) {
+        return nullptr;
+    }
+    return &(*currentSession());
+}
+
+LoginStatus LoginService::login(const std::string& username, const std::string& password) {
+    if (username.empty() || password.empty()) {
+        logger_.logWarning("Login rejected: empty username or password");
+        return LoginStatus::Failure;
+    }
+
+    // Phase 0: accept any non-empty credentials (no DB yet).
+    User user{nextUserId_++, username};
+    Account account{nextAccountId_++, user.id(), 0.0};
+    currentSession() = Session{std::move(user), std::move(account)};
+    loggedIn_ = true;
+
+    logger_.logInfo("Login success for user '" + username + "'");
+    return LoginStatus::Success;
+}
+
+LoginStatus LoginService::logout() {
+    currentSession().reset();
+    loggedIn_ = false;
+    logger_.logInfo("Logout success");
+    return LoginStatus::LogoutSuccess;
+}
+
+LoginStatus LoginService::requestLogin() {
+    std::string username;
+    std::string password;
+
+    std::cout << "Enter username: ";
+    std::getline(std::cin, username);
+    std::cout << "Enter password: ";
+    std::getline(std::cin, password);
+
+    const LoginStatus status = login(username, password);
+    if (status == LoginStatus::Success) {
+        std::cout << "Login successful!\n";
+    } else {
+        std::cout << "Login failed!\n";
+    }
+    return status;
+}
+
+} // namespace Service

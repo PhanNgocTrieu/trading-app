@@ -1,34 +1,56 @@
 #include "bank.h"
 
+#include "domain/session.hpp"
+
+#include <string>
+
 namespace Service {
 
-    void BankAccountService::createAccount(const std::string& name, const std::string& phoneNumber, double initialBalance) {
-        // Implementation for creating a bank account
+BankAccountService::BankAccountService(LoggerService& logger)
+    : logger_(logger) {}
+
+Result<double> BankAccountService::deposit(double amount) {
+    auto& session = currentSession();
+    if (!session) {
+        logger_.logError("Deposit failed: no active session");
+        return Result<double>::fail(ErrorCode::Unauthorized, "not logged in");
     }
 
-    void BankAccountService::deleteAccount(const std::string& accountNumber) {
-        // Implementation for deleting a bank account
+    auto result = session->account.deposit(amount);
+    if (!result.ok()) {
+        logger_.logWarning("Deposit rejected: " + result.message());
+        return Result<double>::fail(result.code(), result.message());
     }
 
-    void BankAccountService::deposit(const std::string& accountNumber, double amount) {
-        _deposit(accountNumber, amount, "deposit");
-    }
-
-    void BankAccountService::withdraw(const std::string& accountNumber, double amount) {
-        _deposit(accountNumber, amount, "withdraw");
-    }
-
-    void BankAccountService::transfer(const std::string& fromAccount, const std::string& toAccount, double amount) {
-        // Implementation for transferring funds between accounts
-    }
-
-    bool BankAccountService::checkBalance(const std::string& accountNumber) {
-        // Implementation for checking the balance of an account
-        return true; // Placeholder return value
-    }
-
-    void BankAccountService::_deposit(const std::string& accountNumber, double amount, const std::string& opt) {
-        // Internal implementation for deposit and withdraw operations
-    }
-    
+    const double cash = session->account.cashBalance();
+    logger_.logInfo("Deposit ok. cash=" + std::to_string(cash));
+    return Result<double>::ok(cash);
 }
+
+Result<double> BankAccountService::withdraw(double amount) {
+    auto& session = currentSession();
+    if (!session) {
+        logger_.logError("Withdraw failed: no active session");
+        return Result<double>::fail(ErrorCode::Unauthorized, "not logged in");
+    }
+
+    auto result = session->account.withdraw(amount);
+    if (!result.ok()) {
+        logger_.logWarning("Withdraw rejected: " + result.message());
+        return Result<double>::fail(result.code(), result.message());
+    }
+
+    const double cash = session->account.cashBalance();
+    logger_.logInfo("Withdraw ok. cash=" + std::to_string(cash));
+    return Result<double>::ok(cash);
+}
+
+Result<double> BankAccountService::balance() const {
+    const auto& session = currentSession();
+    if (!session) {
+        return Result<double>::fail(ErrorCode::Unauthorized, "not logged in");
+    }
+    return Result<double>::ok(session->account.cashBalance());
+}
+
+} // namespace Service

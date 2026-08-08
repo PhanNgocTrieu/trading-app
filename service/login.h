@@ -1,40 +1,33 @@
-#ifndef LOGGIN_SERVICE_H
-#define LOGGIN_SERVICE_H
+#ifndef LOGIN_SERVICE_H
+#define LOGIN_SERVICE_H
 
-#include <iostream>
-#include "status.h"
+#include "domain/session.hpp"
 #include "logger.hpp"
+#include "status.h"
+
+#include <string>
 
 namespace Service {
-    class LoginService {
 
-        public:
-            static LoginService& getInstance() {
-                static LoginService instance;
-                return instance;
-            }
+class LoginService {
+public:
+    explicit LoginService(LoggerService& logger);
 
-            bool getLoginStatus() const {
-                return m_loginStatus;
-            }
+    bool isLoggedIn() const;
+    const Session* session() const;
 
-            virtual ~LoginService() = default;
+    LoginStatus requestLogin();
+    LoginStatus logout();
 
-            
-            LOGIN_STATUS requestLogin();
-            
+private:
+    LoginStatus login(const std::string& username, const std::string& password);
 
-        private:
-            LoginService() = default;
-            LoginService(const LoginService&) = delete;
-            LoginService& operator=(const LoginService&) = delete;
+    LoggerService& logger_;
+    bool loggedIn_{false};
+    int nextUserId_{1};
+    int nextAccountId_{1};
+};
 
-            LOGIN_STATUS login(const std::string& username, const std::string& password);
-            LOGIN_STATUS logout(const std::string& username);
-
-            bool m_loginStatus = false;
-
-    };
-}
+} // namespace Service
 
 #endif

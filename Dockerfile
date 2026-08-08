@@ -10,4 +10,5 @@ RUN apt-get update && apt-get install -y \
     cmake \
     gdb \
     git \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*q
+

@@ -2,6 +2,7 @@
 #define LOGGER_SERVICE_H
 
 #include <iostream>
+#include <string>
 
 namespace Service {
     class LoggerService {

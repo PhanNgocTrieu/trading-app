@@ -1,38 +1,25 @@
 #ifndef BANK_SERVICE_H
 #define BANK_SERVICE_H
 
-#include <iostream>
+#include "domain/account.hpp"
+#include "domain/result.hpp"
+#include "logger.hpp"
 
 namespace Service {
 
-    class BankAccountService {
-        public:
-            static BankAccountService& getInstance() {
-                static BankAccountService instance;
-                return instance;
-            }
+// In-memory wallet operations against the current Session account.
+class BankAccountService {
+public:
+    explicit BankAccountService(LoggerService& logger);
 
-            virtual ~BankAccountService() = default;
+    [[nodiscard]] Result<double> deposit(double amount);
+    [[nodiscard]] Result<double> withdraw(double amount);
+    [[nodiscard]] Result<double> balance() const;
 
-            void createAccount(const std::string& name, const std::string& phoneNumber, double initialBalance);
-            void deleteAccount(const std::string& accountNumber);
-            void deposit(const std::string& accountNumber, double amount);
-            void withdraw(const std::string& accountNumber, double amount);
-            void transfer(const std::string& fromAccount, const std::string& toAccount, double amount);
-            bool checkBalance(const std::string& accountNumber);
-
-        private:
-            BankAccountService() = default;
-            BankAccountService(const BankAccountService&) = delete;
-            BankAccountService& operator=(const BankAccountService&) = delete;
-
-            void _deposit(const std::string& accountNumber, double amount, const std::string& opt);
-
-            std::string m_accountNumber;
-            std::string m_accountHolderName;
-            double m_balance;
-            
-    };
+private:
+    LoggerService& logger_;
 };
+
+} // namespace Service
 
 #endif
