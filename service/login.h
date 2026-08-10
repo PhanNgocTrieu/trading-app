@@ -1,6 +1,8 @@
 #ifndef LOGIN_SERVICE_H
 #define LOGIN_SERVICE_H
 
+#include "application/auth_app_service.hpp"
+#include "application/ports.hpp"
 #include "domain/session.hpp"
 #include "logger.hpp"
 #include "status.h"
@@ -11,21 +13,33 @@ namespace Service {
 
 class LoginService {
 public:
-    explicit LoginService(LoggerService& logger);
+    LoginService(LoggerService& logger,
+                 AuthAppService& auth,
+                 IAccountRepository& accounts);
 
     bool isLoggedIn() const;
     const Session* session() const;
+    AuthSession authSession() const;
 
+    LoginStatus loginWithCredentials(const std::string& username,
+                                     const std::string& password);
+    LoginStatus registerWithCredentials(const std::string& username,
+                                        const std::string& password);
     LoginStatus requestLogin();
+    LoginStatus requestRegister();
     LoginStatus logout();
 
+    // Refresh cached domain Session cash from DB.
+    void syncSessionCash();
+
 private:
-    LoginStatus login(const std::string& username, const std::string& password);
+    void activateSession(const AuthSession& auth);
 
     LoggerService& logger_;
+    AuthAppService& auth_;
+    IAccountRepository& accounts_;
     bool loggedIn_{false};
-    int nextUserId_{1};
-    int nextAccountId_{1};
+    AuthSession authSession_{};
 };
 
 } // namespace Service

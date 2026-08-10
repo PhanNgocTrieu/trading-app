@@ -24,6 +24,8 @@ Mục tiêu không chỉ là “làm chạy được”, mà còn giúp bạn **
 | — | [diagrams/architecture.md](./diagrams/architecture.md) | Sơ đồ Mermaid |
 | — | [cppversions/README.md](./cppversions/README.md) | Sự khác nhau giữa các version C++ + code mẫu |
 | — | [phase0-notes.md](./phase0-notes.md) | Phase 0: vì sao tách Account khỏi User |
+| — | [phase1-notes.md](./phase1-notes.md) | Phase 1: SQLite auth + wallet |
+| — | [testing.md](./testing.md) | GoogleTest layout, chạy test theo phase |
 
 Code mẫu đi kèm nằm trong [`samples/`](./samples/).
 

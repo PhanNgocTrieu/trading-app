@@ -1,6 +1,8 @@
 build/
+_deps/
 *.db
 *.db-journal
 *.db-wal
 *.db-shm
 .DS_Store
+CMakeUserPresets.json

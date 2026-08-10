@@ -35,7 +35,7 @@ Tài liệu này là **roadmap thực thi**. Mỗi phase có: mục tiêu, lý t
 2. Tách `balance` khỏi `User` (thêm `Account` class in-memory)
 3. Thêm `OrderSide`, `OrderStatus`, ...
 4. Refactor `LoginService` nhận dependency logger (bước nhỏ khỏi singleton cứng)
-5. Thêm target/tests skeleton (optional)
+5. Thêm GoogleTest suite theo phase (xem [testing.md](./testing.md))
 
 ### Code mẫu
 
@@ -97,11 +97,11 @@ Xem:
 
 ### DoD Phase 1
 
-- [ ] Tạo được user trong DB
-- [ ] Restart app vẫn login được
-- [ ] Deposit/withdraw đúng balance + ledger
-- [ ] Password không lưu plain text
-- [ ] `*.db` nằm trong `.gitignore`
+- [x] Tạo được user trong DB
+- [x] Restart app vẫn login được
+- [x] Deposit/withdraw đúng balance + ledger
+- [x] Password không lưu plain text
+- [x] `*.db` nằm trong `.gitignore`
 
 ### Thứ tự implement khuyến nghị
 

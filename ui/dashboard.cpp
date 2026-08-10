@@ -16,7 +16,7 @@ Dashboard::Dashboard(std::string title,
 
 void Dashboard::showLoginDashboard() const {
     std::cout << "=== " << title_ << " ===\n";
-    std::cout << "Please log in to access the dashboard.\n";
+    std::cout << "Please login or register (SQLite-backed Phase 1).\n";
     std::cout << "=== End of Dashboard ===\n";
 }
 
@@ -100,6 +100,16 @@ void Dashboard::viewAccount() const {
     } else {
         std::cout << "Cash      : (error) " << balance.message() << "\n";
     }
+
+    auto ledger = bankService_.recentLedger(5);
+    if (ledger.ok() && !ledger.value().empty()) {
+        std::cout << "Recent ledger:\n";
+        for (const auto& entry : ledger.value()) {
+            std::cout << "  [" << entry.createdAt << "] " << toString(entry.type)
+                      << " amount=" << entry.amount
+                      << " balance_after=" << entry.balanceAfter << "\n";
+        }
+    }
     std::cout << "--------------\n";
 }
 
@@ -143,7 +153,7 @@ void Dashboard::withdrawFunds() {
 
 void Dashboard::tradeStocksPlaceholder() const {
     loggerService_.logInfo("Trade Stocks is planned for Phase 2 (MatchingEngine).");
-    std::cout << "Trading is not available in Phase 0.\n";
+    std::cout << "Trading is not available until Phase 2.\n";
     std::cout << "Order types ready: " << toString(OrderSide::Buy) << "/"
               << toString(OrderSide::Sell) << ", " << toString(OrderType::Market)
               << "/" << toString(OrderType::Limit) << "\n";

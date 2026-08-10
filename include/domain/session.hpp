@@ -18,3 +18,7 @@ inline std::optional<Session>& currentSession() {
     static std::optional<Session> session;
     return session;
 }
+
+inline void resetCurrentSession() {
+    currentSession().reset();
+}

@@ -1,3 +1,4 @@
+#include "application/app_bootstrap.hpp"
 #include "bank.h"
 #include "dashboard.h"
 #include "logger.hpp"
@@ -7,6 +8,7 @@
 #include <chrono>
 #include <csignal>
 #include <iostream>
+#include <limits>
 #include <thread>
 
 namespace {
@@ -20,29 +22,45 @@ void handleSignal(int signal) {
 } // namespace
 
 int main() {
-    Service::LoggerService& logger = Service::LoggerService::getInstance();
-    Service::LoginService loginService{logger};
-    Service::BankAccountService bankService{logger};
-    Dashboard dashboard{"Trading App Dashboard", loginService, bankService, logger};
+    try {
+        auto app = AppBootstrap::open(AppBootstrap::defaultDbPath());
+        Service::LoggerService& logger = Service::LoggerService::getInstance();
+        Service::LoginService loginService{logger, app.auth(), app.accounts()};
+        Service::BankAccountService bankService{logger, app.wallet(), loginService};
+        Dashboard dashboard{"Trading App Dashboard", loginService, bankService, logger};
 
-    std::signal(SIGINT, handleSignal);
-    logger.logInfo("Trading app Phase 0 started (C++17, in-memory domain).");
+        std::signal(SIGINT, handleSignal);
+        logger.logInfo("Trading app Phase 1 started (SQLite auth + wallet).");
+        logger.logInfo("DB: " + AppBootstrap::defaultDbPath());
 
-    while (g_running) {
-        if (!loginService.isLoggedIn()) {
-            logger.logInfo("User is not logged in. Please log in to access the dashboard.");
-            dashboard.showLoginDashboard();
-            loginService.requestLogin();
-            continue;
+        while (g_running) {
+            if (!loginService.isLoggedIn()) {
+                dashboard.showLoginDashboard();
+                std::cout << "1. Login\n2. Register\nSelect (1-2): ";
+                int choice = 0;
+                if (!(std::cin >> choice)) {
+                    std::cin.clear();
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    continue;
+                }
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                if (choice == 2) {
+                    loginService.requestRegister();
+                } else {
+                    loginService.requestLogin();
+                }
+                continue;
+            }
+
+            dashboard.showDashboard();
+            dashboard.actionDashboard();
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
 
-        dashboard.showDashboard();
-        dashboard.actionDashboard();
-
-        // Small pause so the console is readable between actions.
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        logger.logInfo("Shutting down.");
+        return 0;
+    } catch (const std::exception& ex) {
+        std::cerr << "Fatal: " << ex.what() << "\n";
+        return 1;
     }
-
-    logger.logInfo("Shutting down.");
-    return 0;
 }
