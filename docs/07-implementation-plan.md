@@ -144,9 +144,9 @@ Connection → migrate → UserRepo → Auth → AccountRepo/Ledger → Wallet �
 
 ### DoD Phase 2
 
-- [ ] 7 acceptance scenarios ở docs/05 mục 10 đều pass
-- [ ] Reject không làm bẩn cash/position
-- [ ] Có ít nhất 3 unit tests domain
+- [x] 7 acceptance scenarios ở docs/05 mục 10 đều pass
+- [x] Reject không làm bẩn cash/position
+- [x] Có ít nhất 3 unit tests domain
 
 ### Pitfalls thường gặp
 
@@ -188,11 +188,11 @@ Connection → migrate → UserRepo → Auth → AccountRepo/Ledger → Wallet �
 
 ### DoD Phase 3
 
-- [ ] Login/Register trên UI
-- [ ] Deposit từ UI
-- [ ] Place BUY/SELL từ UI
-- [ ] Portfolio refresh sau giao dịch
-- [ ] Không có SQL trong `.ui` / window slots (chỉ gọi controller/service)
+- [x] Login/Register trên UI
+- [x] Deposit từ UI
+- [x] Place BUY/SELL từ UI
+- [x] Portfolio refresh sau giao dịch
+- [x] Không có SQL trong `.ui` / window slots (chỉ gọi controller/service)
 
 ### Lộ trình UI nhỏ
 
@@ -229,11 +229,11 @@ Week slice D: Portfolio + history tables
 
 ### DoD Phase 4 (v1 shippable for learning)
 
-- [ ] Giá thay đổi theo thời gian
-- [ ] Equity/uPnL cập nhật
-- [ ] Crash-safe: kill app giữa chừng không corrupt (SQLite)
-- [ ] Bộ test core xanh
-- [ ] Bạn giải thích được end-to-end 1 lệnh BUY trên giấy
+- [x] Giá thay đổi theo thời gian
+- [x] Equity/uPnL cập nhật
+- [x] Crash-safe: kill app giữa chừng không corrupt (SQLite)
+- [x] Bộ test core xanh
+- [x] Bạn giải thích được end-to-end 1 lệnh BUY trên giấy
 
 ---
 

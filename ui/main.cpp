@@ -3,6 +3,7 @@
 #include "dashboard.h"
 #include "logger.hpp"
 #include "login.h"
+#include "trading.h"
 
 #include <atomic>
 #include <chrono>
@@ -27,10 +28,11 @@ int main() {
         Service::LoggerService& logger = Service::LoggerService::getInstance();
         Service::LoginService loginService{logger, app.auth(), app.accounts()};
         Service::BankAccountService bankService{logger, app.wallet(), loginService};
-        Dashboard dashboard{"Trading App Dashboard", loginService, bankService, logger};
+        Service::TradingService tradingService{logger, app.orders(), loginService};
+        Dashboard dashboard{"Trading App Dashboard", loginService, bankService, tradingService};
 
         std::signal(SIGINT, handleSignal);
-        logger.logInfo("Trading app Phase 1 started (SQLite auth + wallet).");
+        logger.logInfo("Trading app Phase 2 started (auth + wallet + paper trading).");
         logger.logInfo("DB: " + AppBootstrap::defaultDbPath());
 
         while (g_running) {

@@ -62,7 +62,9 @@ Phong cách: **Layered + Hexagonal-lite** (ports & adapters đơn giản).
 | `service/bank.*` | Wallet stub | `WalletAppService` + ledger |
 | `service/service.*` | Facade trống | Application façade hoặc xoá dần |
 | `service/logger.hpp` | Cout logger | File/spdlog adapter |
-| `sql/*`, `db/*` | Trống | Infrastructure repositories |
+| `sql/001_init.sql` + `infrastructure/db` | SQLite schema + repos | (Phase 1 done) |
+| `db/*`, `sql/sqlservice.*`, `ServiceAPI` | Stub cũ | **Removed** — see project-structure.md |
+
 | (chưa có) | — | `MatchingEngine`, Order/Trade/Position |
 
 Nguyên tắc tiến hóa: **không rewrite big-bang**. Mỗi phase thay một lát cắt.

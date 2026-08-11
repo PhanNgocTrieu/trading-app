@@ -56,34 +56,32 @@
 
 ## 4. Hiện trạng repo (baseline)
 
-Cấu trúc hiện tại (đơn giản hóa):
+Cấu trúc hiện tại (rút gọn) — chi tiết: [project-structure.md](./project-structure.md):
 
 ```text
 trading-app/
-├── ui/                 # Console UI (main, dashboard)
-├── include/            # Domain headers (User, Stock)
-├── src/                # Domain implementations
-├── service/            # Login, Bank, ServiceAPI, Logger
-├── sql/                # Dự kiến SQL service (đang trống)
-├── db/                 # Dự kiến DB layer (đang trống)
-├── CMakeLists.txt
-└── Dockerfile
+├── ui/                 # Console UI
+├── include/            # application / domain / engine / infrastructure
+├── src/                # trading_core implementations
+├── service/            # Login, Bank, Logger adapters
+├── sql/001_init.sql    # Schema (SQLite)
+├── tests/              # GoogleTest by phase
+├── docs/
+└── CMakeLists.txt
 ```
 
-Điểm mạnh đã có:
+Đã có (Phase 0–1):
 
-- Tách `service` khỏi `ui` / `domain` (ý tưởng đúng hướng)
-- Singleton services (tạm ổn cho prototype; sau sẽ refactor DI)
-- Status enums cho login/account/transaction
-- Devcontainer + CMake sẵn sàng mở rộng
+- Domain tách `User` / `Account`, `Result`, order enums
+- SQLite persistence: auth + wallet + ledger
+- GoogleTest suite
+- Devcontainer + CMake C++17
 
-Hạn chế cần khắc phục theo giai đoạn:
+Còn lại theo giai đoạn:
 
-- UI console → Qt
-- Chưa có persistence thật
-- Domain model chưa đủ cho trading
-- Service còn stub
-- Thiếu transaction / audit / order state machine
+- Phase 2: paper trading orders / matching wired to CLI
+- Phase 3: Qt UI
+- Phase 4: mock market feed + polish — **done**
 
 ---
 

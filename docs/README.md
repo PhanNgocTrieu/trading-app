@@ -25,7 +25,8 @@ Mục tiêu không chỉ là “làm chạy được”, mà còn giúp bạn **
 | — | [cppversions/README.md](./cppversions/README.md) | Sự khác nhau giữa các version C++ + code mẫu |
 | — | [phase0-notes.md](./phase0-notes.md) | Phase 0: vì sao tách Account khỏi User |
 | — | [phase1-notes.md](./phase1-notes.md) | Phase 1: SQLite auth + wallet |
-| — | [testing.md](./testing.md) | GoogleTest layout, chạy test theo phase |
+| — | [testing.md](./testing.md) | **How to build & run GoogleTest** (by phase / filter) |
+| — | [project-structure.md](./project-structure.md) | Cấu trúc thư mục hiện tại (đã dọn stub) |
 
 Code mẫu đi kèm nằm trong [`samples/`](./samples/).
 
@@ -36,14 +37,13 @@ Code mẫu đi kèm nằm trong [`samples/`](./samples/).
 ```text
 docs/
 ├── README.md
-├── 00-overview.md ... 10-glossary-and-exercises.md
-├── diagrams/architecture.md
-└── samples/
-    ├── phase0/   # Domain + Result types
-    ├── phase1/   # SQLite + Auth/Wallet
-    ├── phase2/   # Matching + Positions
-    ├── phase3/   # Qt Widgets skeletons
-    └── phase4/   # Mock market feed
+├── 00-overview.md … 10-glossary-and-exercises.md
+├── testing.md
+├── project-structure.md
+├── phase0-notes.md / phase1-notes.md
+├── diagrams/
+├── cppversions/
+└── samples/phase0…phase4/
 ```
 
 ---
@@ -60,15 +60,9 @@ docs/
 
 ## Trạng thái hiện tại (tóm tắt)
 
-Repo đang ở giai đoạn **console prototype**:
+- **Phase 0–4 done**: domain + SQLite + paper trading + Qt UI + mock market feed
+- Targets: `trading-app` (Qt), `trading-app-cli` (console)
+- Cấu trúc code: [project-structure.md](./project-structure.md)
+- Chạy test: [testing.md](./testing.md)
 
-- UI: terminal (`Dashboard`, `main` loop)
-- Service: Singleton stubs (`LoginService`, `BankAccountService`, `ServiceAPI`)
-- Domain: `User`, `Stock` còn mỏng
-- SQL / Qt: chưa tích hợp thật
-
-Kế hoạch implementation sẽ đưa dự án tới:
-
-> Desktop paper-trading app (Qt) + SQLite + engine khớp lệnh nội bộ + audit log
-
-Xem chi tiết tại [07-implementation-plan.md](./07-implementation-plan.md).
+v1 learning MVP đạt DoD trong [07-implementation-plan.md](./07-implementation-plan.md). Phase 5+ là mở rộng tuỳ chọn.

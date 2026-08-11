@@ -30,7 +30,7 @@ stocks 1──1 market_quotes
 
 ## 3. Schema SQL (Phase 1–2)
 
-File đề xuất: `src/infrastructure/db/migrations/001_init.sql`
+File schema: `sql/001_init.sql` (nội dung cũng được embed trong `src/infrastructure/db/migrator.cpp`).
 
 ```sql
 PRAGMA foreign_keys = ON;

@@ -1,40 +1,42 @@
 #ifndef LOGGER_SERVICE_H
 #define LOGGER_SERVICE_H
 
+#include "color.hpp"
+
 #include <iostream>
 #include <string>
 
 namespace Service {
-    class LoggerService {
-        public:
-            static LoggerService& getInstance() {
-                static LoggerService instance;
-                return instance;
-            }
-            
-            virtual ~LoggerService() = default;
 
-            void logInfo(const std::string& message)
-            {
-                std::cout << "[INFO]: " << message << std::endl;
-            }
+class LoggerService {
+public:
+    static LoggerService& getInstance() {
+        static LoggerService instance;
+        return instance;
+    }
 
-            void logWarning(const std::string& message)
-            {
-                std::cout << "[WARNING]: " << message << std::endl;
-            }
+    virtual ~LoggerService() = default;
 
-            void logError(const std::string& message)
-            {
-                std::cerr << "[ERROR]: " << message << std::endl;
-            }
+    void logInfo(const std::string& message) {
+        std::cout << Color::wrap(Color::BrightGreen, "[INFO]") << ": " << message << std::endl;
+    }
 
-        private:
-            LoggerService() = default;
-            LoggerService(const LoggerService&) = delete;
-            LoggerService& operator=(const LoggerService&) = delete;
+    void logWarning(const std::string& message) {
+        std::cout << Color::wrap(Color::BrightYellow, "[WARNING]") << ": " << message
+                  << std::endl;
+    }
 
-    };
-}
+    void logError(const std::string& message) {
+        std::cerr << Color::wrap(Color::BrightRed, "[ERROR]", stderr) << ": " << message
+                  << std::endl;
+    }
 
-#endif 
+private:
+    LoggerService() = default;
+    LoggerService(const LoggerService&) = delete;
+    LoggerService& operator=(const LoggerService&) = delete;
+};
+
+} // namespace Service
+
+#endif

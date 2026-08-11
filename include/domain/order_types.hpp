@@ -27,3 +27,14 @@ inline const char* toString(OrderStatus status) {
 inline OrderSide sideFromString(const std::string& value) {
     return (value == "SELL" || value == "sell") ? OrderSide::Sell : OrderSide::Buy;
 }
+
+inline OrderType typeFromString(const std::string& value) {
+    return (value == "LIMIT" || value == "limit") ? OrderType::Limit : OrderType::Market;
+}
+
+inline OrderStatus statusFromString(const std::string& value) {
+    if (value == "FILLED") return OrderStatus::Filled;
+    if (value == "REJECTED") return OrderStatus::Rejected;
+    if (value == "CANCELED") return OrderStatus::Canceled;
+    return OrderStatus::Pending;
+}

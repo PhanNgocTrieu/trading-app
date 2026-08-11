@@ -4,6 +4,7 @@ add_library(trading_core
     application/simple_password_hasher.cpp
     application/auth_app_service.cpp
     application/wallet_app_service.cpp
+    application/order_app_service.cpp
 )
 
 target_include_directories(trading_core

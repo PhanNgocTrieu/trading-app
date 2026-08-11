@@ -27,9 +27,22 @@ set(TRADING_TEST_SOURCES
     phase1/test_auth_wallet.cpp
     phase2/test_position.cpp
     phase2/test_matching_engine.cpp
-    phase3/test_phase3_pending.cpp
-    phase4/test_phase4_pending.cpp
+    phase2/test_order_flow.cpp
 )
+
+set(TRADING_TEST_HAS_QT OFF)
+if(TARGET trading_desktop)
+    list(APPEND TRADING_TEST_SOURCES
+        phase3/test_controllers.cpp
+        phase4/test_market_feed.cpp
+    )
+    set(TRADING_TEST_HAS_QT ON)
+else()
+    list(APPEND TRADING_TEST_SOURCES
+        phase3/test_phase3_pending.cpp
+        phase4/test_phase4_pending.cpp
+    )
+endif()
 
 add_executable(trading_unit_tests ${TRADING_TEST_SOURCES})
 
@@ -43,6 +56,18 @@ target_link_libraries(trading_unit_tests PRIVATE
     service
     GTest::gtest_main
 )
+
+if(TRADING_TEST_HAS_QT)
+    find_package(Qt6 REQUIRED COMPONENTS Test)
+    set_target_properties(trading_unit_tests PROPERTIES AUTOMOC ON)
+    target_include_directories(trading_unit_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}/apps/desktop
+    )
+    target_link_libraries(trading_unit_tests PRIVATE
+        trading_desktop
+        Qt6::Test
+    )
+endif()
 
 target_compile_features(trading_unit_tests PRIVATE cxx_std_17)
 target_compile_options(trading_unit_tests PRIVATE -Wall -Wextra -Wpedantic)

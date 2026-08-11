@@ -43,8 +43,9 @@
 
 ## 6. Testing
 
+- Dùng GoogleTest; hướng dẫn chạy: [testing.md](./testing.md)
 - Test domain không link Qt Widgets
-- Đặt tên: `TEST_CASE("position avg cost after two buys")`
+- Đặt tên: `Unit_Behavior` (ví dụ `AccountTest.DepositIncreasesBalance`)
 - Mỗi bug production → thêm 1 regression test nếu có thể
 
 ## 7. Git

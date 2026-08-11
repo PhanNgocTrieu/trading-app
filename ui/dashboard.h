@@ -2,8 +2,8 @@
 #define DASHBOARD_H
 
 #include "bank.h"
-#include "logger.hpp"
 #include "login.h"
+#include "trading.h"
 
 #include <string>
 
@@ -12,7 +12,7 @@ public:
     Dashboard(std::string title,
               Service::LoginService& loginService,
               Service::BankAccountService& bankService,
-              Service::LoggerService& loggerService);
+              Service::TradingService& tradingService);
 
     void showLoginDashboard() const;
     void showDashboard() const;
@@ -26,12 +26,16 @@ private:
     void viewAccount() const;
     void depositFunds();
     void withdrawFunds();
-    void tradeStocksPlaceholder() const;
+    void tradeMenu();
+    void listQuotes() const;
+    void buyMarket();
+    void sellMarket();
+    void viewPortfolio() const;
 
     std::string title_;
     Service::LoginService& loginService_;
     Service::BankAccountService& bankService_;
-    Service::LoggerService& loggerService_;
+    Service::TradingService& tradingService_;
 };
 
 #endif

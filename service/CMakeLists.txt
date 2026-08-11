@@ -1,7 +1,7 @@
 add_library(service
-    service.cpp
     login.cpp
     bank.cpp
+    trading.cpp
 )
 
 target_include_directories(service

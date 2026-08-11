@@ -46,4 +46,9 @@ TEST(SqliteInfrastructureTest, RunMigrationsIdempotent) {
     db.exec("SELECT 1 FROM users;");
     db.exec("SELECT 1 FROM accounts;");
     db.exec("SELECT 1 FROM ledger_entries;");
+    db.exec("SELECT 1 FROM stocks;");
+    db.exec("SELECT 1 FROM market_quotes;");
+    db.exec("SELECT 1 FROM orders;");
+    db.exec("SELECT 1 FROM trades;");
+    db.exec("SELECT 1 FROM positions;");
 }
