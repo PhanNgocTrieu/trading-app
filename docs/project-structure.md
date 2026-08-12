@@ -1,6 +1,6 @@
 # Project Structure
 
-Current layout after Phase 0–3 (CLI + Qt desktop).
+Current layout after Phase 5 (QML desktop; console CLI removed).
 
 ```text
 trading-app/
@@ -12,25 +12,23 @@ trading-app/
 │   ├── domain/                   # Pure domain types
 │   ├── engine/                   # MatchingEngine
 │   └── infrastructure/
-│       ├── crypto/               # SHA-256 helper
-│       └── db/                   # SQLite connection / repos / migrator
-├── src/                          # Implementations for trading_core
-│   ├── application/
-│   └── infrastructure/db/
-├── service/                      # CLI-facing adapters (Login, Bank, Trading, Logger)
-├── ui/                           # Console UI (trading-app-cli)
-├── apps/desktop/                 # Qt Widgets UI (trading-app)
-│   ├── controllers/              # Auth / Wallet / Order controllers
-│   ├── models/                   # PositionTableModel / QuoteTableModel
-│   ├── market/                   # MockMarketDataFeed (QTimer)
-│   ├── windows/                  # LoginWindow / MainWindow
+│       ├── crypto/
+│       └── db/
+├── src/                          # trading_core implementations
+├── service/                      # Adapters still used by GoogleTest fixtures
+├── apps/desktop/                 # Qt Quick desktop (trading-app)
+│   ├── controllers/              # Auth / Wallet / Order
+│   ├── models/                   # Quote + Position table models (QML roles)
+│   ├── market/                   # MockMarketDataFeed
+│   ├── bridge/                   # TradingAppBridge — QML façade
+│   ├── qml/                      # Light-studio UI
+│   ├── windows/                  # Legacy Widgets (unused)
+│   ├── qml.qrc
 │   └── main.cpp
 ├── sql/
 │   ├── 001_init.sql
 │   └── 002_trading.sql
 ├── tests/
-│   ├── phase0/ … phase4/
-│   └── CMakeLists.txt
 └── docs/
 ```
 
@@ -39,28 +37,23 @@ trading-app/
 | Target | Role |
 |--------|------|
 | `trading_core` | Application + infrastructure + SQLite |
-| `service` | Login/Bank/Trading/Logger adapters (CLI) |
-| `trading_desktop` | Qt controllers + windows library |
-| `trading-app` | Qt desktop executable (requires Qt6 Widgets) |
-| `trading-app-cli` | Console executable |
+| `service` | Login/Bank/Trading adapters (tests) |
+| `trading_desktop` | Controllers + models + feed + QML bridge |
+| `trading-app` | Qt Quick desktop executable |
 | `trading_unit_tests` | GoogleTest suite |
-
-Build Qt against a local installer prefix if needed:
 
 ```bash
 cmake -S . -B build -DCMAKE_PREFIX_PATH="$HOME/Qt/6.11.1/macos"
 cmake --build build -j
 ./build/apps/desktop/trading-app
 ./build/apps/desktop/trading-app --db /tmp/demo.db
-./build/trading-app-cli
 ```
 
 ## Dependency direction
 
 ```text
-apps/desktop  →  trading_core  →  SQLite3
-ui (CLI)      →  service       →  trading_core
-tests         →  service / trading_desktop / trading_core
+apps/desktop (QML + bridge)  →  trading_core  →  SQLite3
+tests                        →  service / trading_desktop / trading_core
 ```
 
-Domain headers must not depend on Qt or SQL drivers directly (repos are infrastructure).
+Domain headers must not depend on Qt or SQL drivers directly.

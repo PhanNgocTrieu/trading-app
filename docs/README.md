@@ -25,8 +25,9 @@ Mục tiêu không chỉ là “làm chạy được”, mà còn giúp bạn **
 | — | [cppversions/README.md](./cppversions/README.md) | Sự khác nhau giữa các version C++ + code mẫu |
 | — | [phase0-notes.md](./phase0-notes.md) | Phase 0: vì sao tách Account khỏi User |
 | — | [phase1-notes.md](./phase1-notes.md) | Phase 1: SQLite auth + wallet |
+| — | [phase5-notes.md](./phase5-notes.md) | Phase 5: QML bridge + UI map |
 | — | [testing.md](./testing.md) | **How to build & run GoogleTest** (by phase / filter) |
-| — | [project-structure.md](./project-structure.md) | Cấu trúc thư mục hiện tại (đã dọn stub) |
+| — | [project-structure.md](./project-structure.md) | Cấu trúc thư mục hiện tại |
 
 Code mẫu đi kèm nằm trong [`samples/`](./samples/).
 
@@ -60,9 +61,10 @@ docs/
 
 ## Trạng thái hiện tại (tóm tắt)
 
-- **Phase 0–4 done**: domain + SQLite + paper trading + Qt UI + mock market feed
-- Targets: `trading-app` (Qt), `trading-app-cli` (console)
+- **Phase 0–5 (QML) done**: domain + SQLite + paper trading + mock feed + Qt Quick UI
+- Targets: `trading-app` (QML desktop)
 - Cấu trúc code: [project-structure.md](./project-structure.md)
+- Phase 5 notes: [phase5-notes.md](./phase5-notes.md)
 - Chạy test: [testing.md](./testing.md)
 
-v1 learning MVP đạt DoD trong [07-implementation-plan.md](./07-implementation-plan.md). Phase 5+ là mở rộng tuỳ chọn.
+Limit book / fees / Postgres vẫn là mở rộng tuỳ chọn trong [07-implementation-plan.md](./07-implementation-plan.md).

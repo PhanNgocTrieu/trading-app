@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/Main.qml</file>
+        <file>qml/Theme.qml</file>
+        <file>qml/pages/LoginPage.qml</file>
+        <file>qml/pages/ShellPage.qml</file>
+        <file>qml/components/MetricChip.qml</file>
+        <file>qml/components/PrimaryButton.qml</file>
+        <file>qml/components/StatusToast.qml</file>
+        <file>qml/components/QuotePanel.qml</file>
+        <file>qml/components/OrderTicket.qml</file>
+        <file>qml/components/PortfolioPanel.qml</file>
+    </qresource>
+</RCC>

@@ -2,7 +2,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 Widgets)
 
 add_library(trading_desktop
     controllers/auth_controller.cpp
@@ -11,8 +11,7 @@ add_library(trading_desktop
     models/position_table_model.cpp
     models/quote_table_model.cpp
     market/mock_market_data_feed.cpp
-    windows/login_window.cpp
-    windows/main_window.cpp
+    bridge/trading_app_bridge.cpp
 )
 
 target_include_directories(trading_desktop
@@ -24,6 +23,8 @@ target_include_directories(trading_desktop
 target_link_libraries(trading_desktop
     PUBLIC
         trading_core
+        Qt6::Quick
+        Qt6::QuickControls2
         Qt6::Widgets
 )
 
@@ -32,6 +33,7 @@ target_compile_options(trading_desktop PRIVATE -Wall -Wextra -Wpedantic)
 
 add_executable(trading-app
     main.cpp
+    qml.qrc
 )
 
 target_link_libraries(trading-app PRIVATE trading_desktop)

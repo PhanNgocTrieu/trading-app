@@ -20,27 +20,41 @@ int PositionTableModel::columnCount(const QModelIndex& parent) const {
 }
 
 QVariant PositionTableModel::data(const QModelIndex& index, int role) const {
-    if (!index.isValid() || role != Qt::DisplayRole) {
-        return {};
-    }
-    if (index.row() < 0 || index.row() >= rows_.size()) {
+    if (!index.isValid() || index.row() < 0 || index.row() >= rows_.size()) {
         return {};
     }
 
     const PositionUiDto& row = rows_.at(index.row());
-    switch (index.column()) {
-        case 0:
+    switch (role) {
+        case SymbolRole:
             return row.symbol;
-        case 1:
+        case QuantityRole:
             return row.quantity;
-        case 2:
-            return QString::number(row.avgCost, 'f', 2);
-        case 3:
-            return QString::number(row.marketPrice, 'f', 2);
-        case 4:
-            return QString::number(row.marketValue, 'f', 2);
-        case 5:
-            return QString::number(row.unrealizedPnl, 'f', 2);
+        case AvgCostRole:
+            return row.avgCost;
+        case MarketPriceRole:
+            return row.marketPrice;
+        case MarketValueRole:
+            return row.marketValue;
+        case UnrealizedPnlRole:
+            return row.unrealizedPnl;
+        case Qt::DisplayRole:
+            switch (index.column()) {
+                case 0:
+                    return row.symbol;
+                case 1:
+                    return row.quantity;
+                case 2:
+                    return QString::number(row.avgCost, 'f', 2);
+                case 3:
+                    return QString::number(row.marketPrice, 'f', 2);
+                case 4:
+                    return QString::number(row.marketValue, 'f', 2);
+                case 5:
+                    return QString::number(row.unrealizedPnl, 'f', 2);
+                default:
+                    return {};
+            }
         default:
             return {};
     }
@@ -66,6 +80,18 @@ QVariant PositionTableModel::headerData(int section, Qt::Orientation orientation
         default:
             return {};
     }
+}
+
+QHash<int, QByteArray> PositionTableModel::roleNames() const {
+    return {
+        {SymbolRole, "symbol"},
+        {QuantityRole, "quantity"},
+        {AvgCostRole, "avgCost"},
+        {MarketPriceRole, "marketPrice"},
+        {MarketValueRole, "marketValue"},
+        {UnrealizedPnlRole, "unrealizedPnl"},
+        {Qt::DisplayRole, "display"},
+    };
 }
 
 void PositionTableModel::setPositions(const QVector<PositionUiDto>& rows) {

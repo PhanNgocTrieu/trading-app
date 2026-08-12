@@ -1,5 +1,7 @@
 # 06 — Kiến trúc Qt UI
 
+> **Cập nhật Phase 5:** app desktop chính dùng **Qt Quick/QML** (`apps/desktop/qml` + `TradingAppBridge`). Console `trading-app-cli` đã gỡ; xem [phase5-notes.md](./phase5-notes.md).
+
 ## 1. Mục tiêu UI v1
 
 Một desktop app rõ ràng, không fancy:

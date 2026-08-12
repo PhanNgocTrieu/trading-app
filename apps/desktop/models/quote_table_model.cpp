@@ -20,23 +20,33 @@ int QuoteTableModel::columnCount(const QModelIndex& parent) const {
 }
 
 QVariant QuoteTableModel::data(const QModelIndex& index, int role) const {
-    if (!index.isValid() || role != Qt::DisplayRole) {
-        return {};
-    }
-    if (index.row() < 0 || index.row() >= rows_.size()) {
+    if (!index.isValid() || index.row() < 0 || index.row() >= rows_.size()) {
         return {};
     }
     const QuoteUiDto& row = rows_.at(index.row());
-    switch (index.column()) {
-        case 0:
-            return row.symbol;
-        case 1:
-            return row.name;
-        case 2:
-            return QString::number(row.lastPrice, 'f', 2);
-        default:
-            return {};
+
+    if (role == SymbolRole) {
+        return row.symbol;
     }
+    if (role == NameRole) {
+        return row.name;
+    }
+    if (role == LastPriceRole) {
+        return row.lastPrice;
+    }
+    if (role == Qt::DisplayRole) {
+        switch (index.column()) {
+            case 0:
+                return row.symbol;
+            case 1:
+                return row.name;
+            case 2:
+                return QString::number(row.lastPrice, 'f', 2);
+            default:
+                return {};
+        }
+    }
+    return {};
 }
 
 QVariant QuoteTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -53,6 +63,15 @@ QVariant QuoteTableModel::headerData(int section, Qt::Orientation orientation, i
         default:
             return {};
     }
+}
+
+QHash<int, QByteArray> QuoteTableModel::roleNames() const {
+    return {
+        {SymbolRole, "symbol"},
+        {NameRole, "name"},
+        {LastPriceRole, "lastPrice"},
+        {Qt::DisplayRole, "display"},
+    };
 }
 
 void QuoteTableModel::setQuotes(const QVector<QuoteUiDto>& rows) {

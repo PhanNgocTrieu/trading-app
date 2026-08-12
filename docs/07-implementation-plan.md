@@ -239,12 +239,16 @@ Week slice D: Portfolio + history tables
 
 ## Phase 5+ (tuỳ chọn — sau v1)
 
-Không bắt buộc:
+### Done in Phase 5 (QML redesign)
+
+- [x] QML light-studio UI (`apps/desktop/qml`) via `TradingAppBridge`
+- [x] Keep Market orders + mock feed; Widgets windows no longer the app entry
+
+### Still optional
 
 - Limit orders + mini order book
 - Multi-account
 - PostgreSQL mode
-- QML redesign
 - Real market data API (Yahoo/Finnhub…) với rate limit
 - Fees / corporate actions giả lập
 

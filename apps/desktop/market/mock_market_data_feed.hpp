@@ -11,7 +11,9 @@
 
 namespace desktop {
 
-// QTimer-based paper market feed. Applies a small random-walk shock per symbol.
+// Paper-trading price feed (Phase 4).
+// Every timer tick: for each symbol, lastPrice *= (1 + random[-0.5%, +0.5%]),
+// persist via PriceWriter, then emit quotesUpdated() so the UI can refresh.
 class MockMarketDataFeed : public QObject {
     Q_OBJECT
 public:
