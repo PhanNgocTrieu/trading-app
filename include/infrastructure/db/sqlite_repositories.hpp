@@ -75,7 +75,11 @@ public:
                int quantity,
                std::optional<double> limitPrice,
                OrderStatus status) override;
+    std::optional<OrderRow> findById(int orderId) override;
     std::vector<OrderRow> listRecent(int accountId, int limit) override;
+    std::vector<OrderRow> listPendingByAccount(int accountId) override;
+    std::vector<OrderRow> listPendingBySymbol(const std::string& symbol) override;
+    void updateStatus(int orderId, OrderStatus status) override;
 
 private:
     SqliteConnection& db_;

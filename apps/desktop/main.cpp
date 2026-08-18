@@ -28,8 +28,11 @@ int main(int argc, char* argv[]) {
     qRegisterMetaType<desktop::OrderUiDto>("desktop::OrderUiDto");
     qRegisterMetaType<desktop::PositionUiDto>("desktop::PositionUiDto");
     qRegisterMetaType<desktop::QuoteUiDto>("desktop::QuoteUiDto");
+    qRegisterMetaType<desktop::BookLevelUiDto>("desktop::BookLevelUiDto");
     qRegisterMetaType<QVector<desktop::PositionUiDto>>("QVector<desktop::PositionUiDto>");
     qRegisterMetaType<QVector<desktop::QuoteUiDto>>("QVector<desktop::QuoteUiDto>");
+    qRegisterMetaType<QVector<desktop::OrderUiDto>>("QVector<desktop::OrderUiDto>");
+    qRegisterMetaType<QVector<desktop::BookLevelUiDto>>("QVector<desktop::BookLevelUiDto>");
 
     QCommandLineParser parser;
     parser.setApplicationDescription(QStringLiteral("Paper trading desktop app (QML)"));

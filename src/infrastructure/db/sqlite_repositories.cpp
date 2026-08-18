@@ -8,6 +8,30 @@ void throwPrepareError(sqlite3* db, const char* what) {
     throw std::runtime_error(std::string(what) + ": " + sqlite3_errmsg(db));
 }
 
+OrderRow orderFromStatement(sqlite3_stmt* stmt) {
+    OrderRow order;
+    order.id = sqlite3_column_int(stmt, 0);
+    order.accountId = sqlite3_column_int(stmt, 1);
+    order.symbol = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+    order.side = sideFromString(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
+    order.type = typeFromString(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
+    order.quantity = sqlite3_column_int(stmt, 5);
+    if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) {
+        order.limitPrice = sqlite3_column_double(stmt, 6);
+    }
+    order.status = statusFromString(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7)));
+    return order;
+}
+
+std::vector<OrderRow> collectOrders(sqlite3_stmt* stmt) {
+    std::vector<OrderRow> rows;
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        rows.push_back(orderFromStatement(stmt));
+    }
+    sqlite3_finalize(stmt);
+    return rows;
+}
+
 } // namespace
 
 SqliteUserRepository::SqliteUserRepository(SqliteConnection& db)
@@ -394,6 +418,24 @@ int SqliteOrderRepository::insert(int accountId,
     return static_cast<int>(db_.lastInsertRowId());
 }
 
+std::optional<OrderRow> SqliteOrderRepository::findById(int orderId) {
+    sqlite3_stmt* stmt = nullptr;
+    const char* sql =
+        "SELECT id, account_id, symbol, side, type, quantity, limit_price, status "
+        "FROM orders WHERE id = ?;";
+    if (sqlite3_prepare_v2(db_.handle(), sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        throwPrepareError(db_.handle(), "prepare order findById");
+    }
+    sqlite3_bind_int(stmt, 1, orderId);
+
+    std::optional<OrderRow> row;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        row = orderFromStatement(stmt);
+    }
+    sqlite3_finalize(stmt);
+    return row;
+}
+
 std::vector<OrderRow> SqliteOrderRepository::listRecent(int accountId, int limit) {
     sqlite3_stmt* stmt = nullptr;
     const char* sql =
@@ -404,25 +446,47 @@ std::vector<OrderRow> SqliteOrderRepository::listRecent(int accountId, int limit
     }
     sqlite3_bind_int(stmt, 1, accountId);
     sqlite3_bind_int(stmt, 2, limit);
+    return collectOrders(stmt);
+}
 
-    std::vector<OrderRow> rows;
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
-        OrderRow order;
-        order.id = sqlite3_column_int(stmt, 0);
-        order.accountId = sqlite3_column_int(stmt, 1);
-        order.symbol = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-        order.side = sideFromString(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3)));
-        order.type = typeFromString(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)));
-        order.quantity = sqlite3_column_int(stmt, 5);
-        if (sqlite3_column_type(stmt, 6) != SQLITE_NULL) {
-            order.limitPrice = sqlite3_column_double(stmt, 6);
-        }
-        order.status =
-            statusFromString(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 7)));
-        rows.push_back(std::move(order));
+std::vector<OrderRow> SqliteOrderRepository::listPendingByAccount(int accountId) {
+    sqlite3_stmt* stmt = nullptr;
+    const char* sql =
+        "SELECT id, account_id, symbol, side, type, quantity, limit_price, status "
+        "FROM orders WHERE account_id = ? AND status = 'PENDING' ORDER BY id ASC;";
+    if (sqlite3_prepare_v2(db_.handle(), sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        throwPrepareError(db_.handle(), "prepare listPendingByAccount");
+    }
+    sqlite3_bind_int(stmt, 1, accountId);
+    return collectOrders(stmt);
+}
+
+std::vector<OrderRow> SqliteOrderRepository::listPendingBySymbol(const std::string& symbol) {
+    sqlite3_stmt* stmt = nullptr;
+    const char* sql =
+        "SELECT id, account_id, symbol, side, type, quantity, limit_price, status "
+        "FROM orders WHERE symbol = ? AND status = 'PENDING' ORDER BY id ASC;";
+    if (sqlite3_prepare_v2(db_.handle(), sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        throwPrepareError(db_.handle(), "prepare listPendingBySymbol");
+    }
+    sqlite3_bind_text(stmt, 1, symbol.c_str(), -1, SQLITE_TRANSIENT);
+    return collectOrders(stmt);
+}
+
+void SqliteOrderRepository::updateStatus(int orderId, OrderStatus status) {
+    sqlite3_stmt* stmt = nullptr;
+    const char* sql =
+        "UPDATE orders SET status = ?, updated_at = datetime('now') WHERE id = ?;";
+    if (sqlite3_prepare_v2(db_.handle(), sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        throwPrepareError(db_.handle(), "prepare order updateStatus");
+    }
+    sqlite3_bind_text(stmt, 1, toString(status), -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2, orderId);
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        throwPrepareError(db_.handle(), "order updateStatus");
     }
     sqlite3_finalize(stmt);
-    return rows;
 }
 
 SqliteTradeRepository::SqliteTradeRepository(SqliteConnection& db)

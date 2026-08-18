@@ -6,9 +6,15 @@
         <file>qml/pages/ShellPage.qml</file>
         <file>qml/components/MetricChip.qml</file>
         <file>qml/components/PrimaryButton.qml</file>
+        <file>qml/components/GhostButton.qml</file>
+        <file>qml/components/SegmentedControl.qml</file>
+        <file>qml/components/ThemedTextField.qml</file>
+        <file>qml/components/MarketBackdrop.qml</file>
         <file>qml/components/StatusToast.qml</file>
         <file>qml/components/QuotePanel.qml</file>
         <file>qml/components/OrderTicket.qml</file>
         <file>qml/components/PortfolioPanel.qml</file>
+        <file>qml/components/OrderBookPanel.qml</file>
+        <file>qml/components/WorkingOrdersPanel.qml</file>
     </qresource>
 </RCC>

@@ -155,6 +155,27 @@ User    OrderTicket   OrderAppService   MatchingEngine   Repos/DB
  |<--update-|               |                 |            |
 ```
 
+### 4.4. Place Limit Order (Phase 6)
+
+```text
+UI OrderTicket (LIMIT, limitPrice)
+  → OrderAppService.placeLimitOrder(session, symbol, side, qty, limitPrice)
+      → BEGIN IMMEDIATE
+         match against last price
+         if marketable → fill at last price (same as market)
+         else rest PENDING (cash unchanged; buying power reserved)
+      → COMMIT
+Feed / setQuotePrice(symbol, last)
+  → BEGIN IMMEDIATE
+     update market_quotes
+     FIFO pending for symbol: if now marketable → fill
+  → COMMIT
+Cancel
+  → only PENDING owned by session → CANCELED
+```
+
+Mini book: aggregate PENDING by (side, limitPrice). Not a CLOB — matching is still vs last price.
+
 ---
 
 ## 5. Portfolio / query workflows

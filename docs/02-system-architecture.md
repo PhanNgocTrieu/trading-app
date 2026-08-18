@@ -7,9 +7,11 @@ Xây một ứng dụng desktop paper-trading có thể:
 - Phát triển theo module độc lập
 - Test domain/engine không cần UI
 - Đổi SQLite → PostgreSQL sau này với chi phí thấp
-- Chuyển từ console UI hiện tại sang Qt mà không viết lại nghiệp vụ
+- Đổi presentation (QML) mà không viết lại nghiệp vụ
 
 Phong cách: **Layered + Hexagonal-lite** (ports & adapters đơn giản).
+
+Mermaid (Phase 6, khớp code): [diagrams/README.md](./diagrams/README.md).
 
 ---
 
@@ -17,57 +19,53 @@ Phong cách: **Layered + Hexagonal-lite** (ports & adapters đơn giản).
 
 ```text
                      ┌──────────────────────┐
-                     │   Qt Widgets UI      │
-                     │  LoginWindow         │
-                     │  MainWindow          │
-                     │  OrderTicketView     │
-                     │  PortfolioView       │
+                     │   Qt Quick (QML)     │
+                     │  LoginPage / Shell   │
+                     │  context property    │
+                     │  `app` (bridge)      │
                      └──────────┬───────────┘
-                                │ signals / slots
+                                │ Q_INVOKABLE / models
                      ┌──────────▼───────────┐
-                     │  UI Controllers /    │
-                     │  Presenters          │
+                     │  TradingAppBridge    │
+                     │  Controllers         │
+                     │  Table models / feed │
                      └──────────┬───────────┘
                                 │ DTOs / commands
 ┌───────────────────────────────▼────────────────────────────────┐
 │                     Application Layer                           │
 │  AuthAppService | WalletAppService | OrderAppService            │
-│  PortfolioAppService | MarketAppService                         │
+│  AppBootstrap (composition root)                                │
 └───────────────────────────────┬────────────────────────────────┘
-                                │ domain calls
+                                │ domain + ports
 ┌───────────────────────────────▼────────────────────────────────┐
-│                        Domain Layer                             │
-│  Entities: User, Account, Stock, Order, Trade, Position         │
-│  Services: MatchingEngine, PortfolioCalculator                  │
-│  Value Objects: Money, Quantity, Symbol                         │
+│                        Domain + Engine                          │
+│  User, Account, Position, Order enums, MatchingEngine           │
 └───────────────────────────────┬────────────────────────────────┘
-                                │ interfaces (ports)
+                                │ I*Repository
 ┌───────────────────────────────▼────────────────────────────────┐
 │                   Infrastructure Layer                          │
-│  SqliteUserRepo | SqliteOrderRepo | SqliteLedgerRepo            │
-│  MockMarketDataFeed | FileLogger | PasswordHasher               │
+│  Sqlite*Repository | Transaction | SimplePasswordHasher         │
+│  MockMarketDataFeed lives in apps/desktop (Qt timer)            │
 └────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Mapping từ code hiện tại → kiến trúc đích
+## 3. Mapping code sống (as-built)
 
-| Hiện tại | Vai trò hiện tại | Đích đến |
-|----------|------------------|----------|
-| `ui/dashboard.*`, `ui/main.cpp` | Console presentation | Qt Views + Controllers |
-| `include/user.h`, `src/user.cpp` | Domain mỏng | Domain entity đầy đủ + password hash meta |
-| `include/stock.h`, `src/stock.cpp` | Domain mỏng | Instrument + MarketPrice |
-| `service/login.*` | Auth stub + cin | `AuthAppService` + repo |
-| `service/bank.*` | Wallet stub | `WalletAppService` + ledger |
-| `service/service.*` | Facade trống | Application façade hoặc xoá dần |
-| `service/logger.hpp` | Cout logger | File/spdlog adapter |
-| `sql/001_init.sql` + `infrastructure/db` | SQLite schema + repos | (Phase 1 done) |
-| `db/*`, `sql/sqlservice.*`, `ServiceAPI` | Stub cũ | **Removed** — see project-structure.md |
+| Concern | Live path |
+|---------|-----------|
+| Auth | `AuthAppService` |
+| Wallet + ledger | `WalletAppService` |
+| Market / limit orders, book | `OrderAppService` |
+| Fill rules | `MatchingEngine` |
+| Persistence | `sql/` + `Sqlite*Repository` |
+| Desktop UI | `apps/desktop/` (QML + `TradingAppBridge`) |
+| Tests | `tests/support/app_fixture.hpp` + `tests/phaseN/` |
 
-| (chưa có) | — | `MatchingEngine`, Order/Trade/Position |
+Đã gỡ: console `ui/`, adapter `service/`, Qt Widgets `apps/desktop/windows/`. Không thêm lại.
 
-Nguyên tắc tiến hóa: **không rewrite big-bang**. Mỗi phase thay một lát cắt.
+Cây thư mục: [project-structure.md](./project-structure.md).
 
 ---
 
@@ -103,42 +101,17 @@ Nguyên tắc tiến hóa: **không rewrite big-bang**. Mỗi phase thay một l
 
 ---
 
-## 5. Cấu trúc thư mục đề xuất (đích)
+## 5. Cấu trúc thư mục (as-built)
+
+Xem [project-structure.md](./project-structure.md). Tóm tắt:
 
 ```text
-trading-app/
-├── apps/
-│   └── desktop/                 # Qt app (main, windows)
-├── src/
-│   ├── domain/
-│   │   ├── user.*
-│   │   ├── account.*
-│   │   ├── order.*
-│   │   ├── position.*
-│   │   └── stock.*
-│   ├── application/
-│   │   ├── auth_service.*
-│   │   ├── wallet_service.*
-│   │   ├── order_service.*
-│   │   └── portfolio_service.*
-│   ├── infrastructure/
-│   │   ├── db/
-│   │   │   ├── sqlite_connection.*
-│   │   │   ├── migrations/
-│   │   │   └── *_repository.*
-│   │   ├── market/
-│   │   │   └── mock_market_feed.*
-│   │   └── logging/
-│   │       └── logger.*
-│   └── engine/
-│       └── matching_engine.*
-├── include/                     # public headers nếu cần
-├── tests/
-├── docs/
-└── CMakeLists.txt
+include/{application,domain,engine,infrastructure}
+src/{application,infrastructure/db}
+apps/desktop/{bridge,controllers,models,market,qml}
+tests/{support,phase0…phase6}
+sql/
 ```
-
-Trong giai đoạn chuyển tiếp, có thể giữ `service/` và `ui/` cũ, dần migrate.
 
 ---
 

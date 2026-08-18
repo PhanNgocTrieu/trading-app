@@ -271,10 +271,10 @@ Ví dụ `PlaceOrderService`:
 
 ### E.4. Singleton — dùng có mức độ
 
-Code hiện tại dùng Singleton nhiều (`LoginService`, `BankAccountService`, ...).
+Prototype từng dùng Singleton (`LoginService`, …). Code sống dùng **constructor injection** qua `AppBootstrap`.
 
-- Prototype: chấp nhận được
-- Khi có Qt + test: chuyển dần sang **constructor injection**
+- Prototype: Singleton chấp nhận được
+- Production/test: **constructor injection**
 
 Lý do: Singleton khó fake trong unit test và che giấu dependency.
 

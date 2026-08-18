@@ -7,37 +7,44 @@ Item {
     property var theme
     property string label: ""
     property string value: ""
-    property color valueColor: theme ? theme.textPrimary : "#172033"
+    property color valueColor: theme ? theme.textPrimary : "#EAF0FA"
 
-    width: chip.implicitWidth
-    height: chip.implicitHeight
+    implicitWidth: 148
+    implicitHeight: 62
+    Layout.minimumWidth: 120
+    Layout.preferredWidth: 148
+    Layout.maximumWidth: 180
 
     Rectangle {
         id: chip
         anchors.fill: parent
-        implicitWidth: col.implicitWidth + (theme ? theme.spaceMd * 2 : 24)
-        implicitHeight: col.implicitHeight + (theme ? theme.spaceSm * 2 : 16)
-        radius: theme ? theme.radiusMd : 10
-        color: theme ? theme.surface : "#FFFFFF"
-        border.color: theme ? theme.border : "#C5D0DC"
+        radius: theme ? theme.radiusMd : 12
+        color: theme ? theme.surface : "#152036"
+        border.color: theme ? theme.border : "#334766"
         border.width: 1
 
         ColumnLayout {
-            id: col
-            anchors.centerIn: parent
+            anchors.fill: parent
+            anchors.leftMargin: 12
+            anchors.rightMargin: 12
+            anchors.topMargin: 8
+            anchors.bottomMargin: 8
             spacing: 2
 
             Text {
+                Layout.fillWidth: true
                 text: root.label
-                color: theme ? theme.textSecondary : "#5B6B7C"
-                font: theme ? theme.monoFont : Qt.font({pixelSize: 12})
+                color: theme ? theme.textMuted : "#6B7F9A"
+                font: theme ? theme.captionFont : font
+                elide: Text.ElideRight
             }
             Text {
                 id: valueText
+                Layout.fillWidth: true
                 text: root.value
                 color: root.valueColor
-                font: theme ? theme.headingFont : Qt.font({pixelSize: 18, weight: Font.DemiBold})
-
+                font: theme ? theme.metricFont : font
+                elide: Text.ElideRight
                 Behavior on color { ColorAnimation { duration: 220 } }
             }
         }
@@ -47,10 +54,10 @@ Item {
         flashAnim.restart()
     }
 
-    SequentialAnimation on opacity {
+    SequentialAnimation {
         id: flashAnim
         running: false
-        NumberAnimation { to: 0.55; duration: 90 }
-        NumberAnimation { to: 1.0; duration: 180 }
+        NumberAnimation { target: chip; property: "opacity"; to: 0.55; duration: 90 }
+        NumberAnimation { target: chip; property: "opacity"; to: 1.0; duration: 180 }
     }
 }

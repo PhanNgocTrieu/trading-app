@@ -1,5 +1,7 @@
 build/
 _deps/
+CMakeFiles/
+CMakeCache.txt
 *.db
 *.db-journal
 *.db-wal

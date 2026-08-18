@@ -1,34 +1,40 @@
 # Project Structure
 
-Current layout after Phase 5 (QML desktop; console CLI removed).
+Current layout after cleanup (Phase 6). One live path: QML desktop → application services → domain → SQLite.
 
 ```text
 trading-app/
 ├── CMakeLists.txt
 ├── Dockerfile
+├── AGENTS.md
+├── .agents/
 ├── .devcontainer/
-├── include/                      # Public headers
-│   ├── application/              # Use-cases (Auth, Wallet, Order, bootstrap)
-│   ├── domain/                   # Pure domain types
+├── include/                      # Public headers (trading_core)
+│   ├── application/              # Auth, Wallet, Order, ports, AppBootstrap
+│   ├── domain/                   # Pure types (no Qt / SQL)
 │   ├── engine/                   # MatchingEngine
 │   └── infrastructure/
 │       ├── crypto/
 │       └── db/
 ├── src/                          # trading_core implementations
-├── service/                      # Adapters still used by GoogleTest fixtures
-├── apps/desktop/                 # Qt Quick desktop (trading-app)
-│   ├── controllers/              # Auth / Wallet / Order
-│   ├── models/                   # Quote + Position table models (QML roles)
-│   ├── market/                   # MockMarketDataFeed
-│   ├── bridge/                   # TradingAppBridge — QML façade
-│   ├── qml/                      # Light-studio UI
-│   ├── windows/                  # Legacy Widgets (unused)
-│   ├── qml.qrc
-│   └── main.cpp
+│   ├── application/
+│   └── infrastructure/db/
+├── apps/desktop/                 # Qt Quick (trading-app)
+│   ├── main.cpp
+│   ├── dto.hpp
+│   ├── bridge/
+│   ├── controllers/
+│   ├── models/
+│   ├── market/
+│   ├── qml/
+│   └── qml.qrc
 ├── sql/
 │   ├── 001_init.sql
 │   └── 002_trading.sql
 ├── tests/
+│   ├── support/app_fixture.hpp   # in-memory AppBootstrap fixture
+│   ├── phase0/ … phase6/
+│   └── CMakeLists.txt
 └── docs/
 ```
 
@@ -37,8 +43,7 @@ trading-app/
 | Target | Role |
 |--------|------|
 | `trading_core` | Application + infrastructure + SQLite |
-| `service` | Login/Bank/Trading adapters (tests) |
-| `trading_desktop` | Controllers + models + feed + QML bridge |
+| `trading_desktop` | Controllers, models, feed, QML bridge |
 | `trading-app` | Qt Quick desktop executable |
 | `trading_unit_tests` | GoogleTest suite |
 
@@ -53,7 +58,7 @@ cmake --build build -j
 
 ```text
 apps/desktop (QML + bridge)  →  trading_core  →  SQLite3
-tests                        →  service / trading_desktop / trading_core
+tests                        →  trading_core / trading_desktop
 ```
 
 Domain headers must not depend on Qt or SQL drivers directly.

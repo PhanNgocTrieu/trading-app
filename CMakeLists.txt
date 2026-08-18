@@ -18,10 +18,9 @@ elseif(EXISTS "$ENV{HOME}/Qt/6.8.0/macos")
 endif()
 
 add_subdirectory(src)
-add_subdirectory(service)
 
 if(TRADING_APP_BUILD_QT)
-    find_package(Qt6 COMPONENTS Quick QuickControls2 Widgets QUIET)
+    find_package(Qt6 COMPONENTS Quick QuickControls2 QUIET)
     if(Qt6_FOUND)
         add_subdirectory(apps/desktop)
         message(STATUS "Qt6 found — building trading-app (QML desktop)")

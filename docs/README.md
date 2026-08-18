@@ -1,6 +1,6 @@
 # Trading App — Tài liệu kỹ thuật
 
-Bộ tài liệu này hướng dẫn xây dựng **trading-app** thực tế bằng **C++**, **Qt Framework** (UI + platform), và **SQL** (cơ sở dữ liệu), xuất phát từ prototype console hiện có trong repo.
+Bộ tài liệu này hướng dẫn **trading-app**: **C++17**, **Qt 6 Quick**, **SQLite** paper trading. Code sống nằm trong `include/`, `src/`, `apps/desktop/`.
 
 Mục tiêu không chỉ là “làm chạy được”, mà còn giúp bạn **đào sâu**: hiểu domain trading, kiến trúc phần mềm, lifecycle Qt, transaction SQL, và cách triển khai từng giai đoạn có kiểm soát.
 
@@ -21,15 +21,16 @@ Mục tiêu không chỉ là “làm chạy được”, mà còn giúp bạn **
 | 9 | [08-coding-standards.md](./08-coding-standards.md) | Cấu trúc thư mục, chuẩn code, testing |
 | 10 | [09-security-and-risk.md](./09-security-and-risk.md) | Bảo mật, rủi ro giao dịch, audit |
 | 11 | [10-glossary-and-exercises.md](./10-glossary-and-exercises.md) | Glossary + bài tập đào sâu |
-| — | [diagrams/architecture.md](./diagrams/architecture.md) | Sơ đồ Mermaid |
+| — | [diagrams/README.md](./diagrams/README.md) | Mermaid: architecture, class, component, sequence, use case |
 | — | [cppversions/README.md](./cppversions/README.md) | Sự khác nhau giữa các version C++ + code mẫu |
 | — | [phase0-notes.md](./phase0-notes.md) | Phase 0: vì sao tách Account khỏi User |
 | — | [phase1-notes.md](./phase1-notes.md) | Phase 1: SQLite auth + wallet |
 | — | [phase5-notes.md](./phase5-notes.md) | Phase 5: QML bridge + UI map |
+| — | [phase6-notes.md](./phase6-notes.md) | Phase 6: limit orders + mini book |
 | — | [testing.md](./testing.md) | **How to build & run GoogleTest** (by phase / filter) |
 | — | [project-structure.md](./project-structure.md) | Cấu trúc thư mục hiện tại |
 
-Code mẫu đi kèm nằm trong [`samples/`](./samples/).
+Code live nằm trong `include/`, `src/`, `apps/desktop/`. Sơ đồ: [diagrams/README.md](./diagrams/README.md).
 
 ---
 
@@ -41,10 +42,9 @@ docs/
 ├── 00-overview.md … 10-glossary-and-exercises.md
 ├── testing.md
 ├── project-structure.md
-├── phase0-notes.md / phase1-notes.md
-├── diagrams/
+├── phase0-notes.md / phase1-notes.md / phase5-notes.md / phase6-notes.md
+├── diagrams/          # architecture, class, components, sequence, use-cases
 ├── cppversions/
-└── samples/phase0…phase4/
 ```
 
 ---
@@ -55,16 +55,17 @@ docs/
 2. **Tách UI khỏi nghiệp vụ**: Qt chỉ là presentation; domain/engine không phụ thuộc Qt.
 3. **SQL là nguồn sự thật**: số dư, lệnh, vị thế phải nhất quán nhờ transaction.
 4. **Paper trading trước**: giả lập khớp lệnh nội bộ trước khi nghĩ tới broker thật.
-5. **Tiến hóa từ code hiện có**: `User`, `Stock`, `LoginService`, `BankAccountService`, `Dashboard` là điểm xuất phát.
+5. **Code sống thắng skeleton**: đọc `include/` và `apps/desktop/`, không revive `service/` hay Widgets windows.
 
 ---
 
 ## Trạng thái hiện tại (tóm tắt)
 
-- **Phase 0–5 (QML) done**: domain + SQLite + paper trading + mock feed + Qt Quick UI
+- **Phase 0–6 done**: domain + SQLite + paper trading + mock feed + Qt Quick UI + resting limits
 - Targets: `trading-app` (QML desktop)
 - Cấu trúc code: [project-structure.md](./project-structure.md)
 - Phase 5 notes: [phase5-notes.md](./phase5-notes.md)
+- Phase 6 notes: [phase6-notes.md](./phase6-notes.md)
 - Chạy test: [testing.md](./testing.md)
 
-Limit book / fees / Postgres vẫn là mở rộng tuỳ chọn trong [07-implementation-plan.md](./07-implementation-plan.md).
+True CLOB / fees / Postgres vẫn là mở rộng tuỳ chọn trong [07-implementation-plan.md](./07-implementation-plan.md).

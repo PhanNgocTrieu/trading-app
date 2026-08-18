@@ -28,10 +28,9 @@ Gộp `balance` vào `User` làm model sai miền nghiệp vụ và khó mở r�
 ## Phase 0 đã hoàn thành gì?
 
 - C++17 thống nhất qua CMake
-- Domain: `User`, `Account`, `Stock`, `Result`, `OrderSide/Type/Status`, `Session`
-- `LoginService` / `BankAccountService` nhận `LoggerService&` (bỏ singleton cứng ở các service này)
-- CLI: login → view account / deposit / withdraw / logout
-- Test nhẹ: `phase0_account_test`
+- Domain: `User`, `Account`, `Stock`, `Result`, `OrderSide/Type/Status`
+- Tests call `AppBootstrap` (console `LoginService` / `BankAccountService` later removed)
+- CLI login loop existed in Phase 0; desktop QML replaced it in Phase 5
 
 ## Chưa làm (cố ý — Phase 1+)
 

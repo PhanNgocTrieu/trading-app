@@ -37,7 +37,7 @@
 ### Phase 0
 
 - Viết `Account` và test tay deposit/withdraw.
-- Chuyển `typedef enum` trong `status.h` sang `enum class` (migrate dần).
+- Đọc `enum class` trong `include/domain/order_types.hpp` và `ledger_types.hpp`; giải thích vì sao SQL lưu `'BUY'`/`'SELL'` string.
 
 ### Phase 1
 

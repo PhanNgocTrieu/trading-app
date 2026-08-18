@@ -12,7 +12,7 @@ Run the matching checklist. Keep diffs inside one use-case.
 6. Controller (if UI): call the service, emit success/error signals.
 7. Bridge: `Q_INVOKABLE` / `Q_PROPERTY`, update metrics via `rebuildOverview()`.
 8. QML: bind the new API; no extra logic.
-9. Test: `tests/phase1` (auth/wallet) or `tests/phase2` (orders). Add the `.cpp` to `TRADING_TEST_SOURCES`.
+9. Test: `tests/phase1` (auth/wallet), `tests/phase2` (market orders), or `tests/phase6` (limits). Add the `.cpp` to `TRADING_TEST_SOURCES` and reuse `AppFixture`.
 10. Build and filter-run the new suite.
 
 Cash rule: update `accounts.cash_balance` and insert `ledger_entries` in the same transaction, or abort.
@@ -46,7 +46,7 @@ Never edit a shipped migration in place if local DBs may already have applied it
 ## E. Mock market feed
 
 - Feed belongs in `apps/desktop/market/`.
-- Price writes go through `OrderAppService::setQuotePrice` (or the same repo path used today), not raw SQL in the timer slot.
+- Price writes go through `OrderAppService::setQuotePrice` so resting limits can fill on the tick.
 - UI refresh: models + `rebuildOverview()`; `metricsFlashed` for chip animation.
 - Tests: `tests/phase4/`.
 
@@ -60,19 +60,21 @@ cmake --build build -j
 | You changed | Filter |
 |-------------|--------|
 | `Result` / account / user / enums | `ResultTest.*:AccountTest.*:UserTest.*:OrderTypesTest.*` |
-| Auth / wallet / sqlite | `Phase1Fixture.*:SqliteInfrastructureTest.*:PasswordHasherTest.*` |
+| Auth / wallet / sqlite | `AppFixture.*:SqliteInfrastructureTest.*:PasswordHasherTest.*` |
 | Position / matching / place order | `PositionTest.*:MatchingEngineTest.*:Phase2*` |
+| Limit rest / fill / cancel / book | `Phase6*` |
 | Controllers | `Phase3*` |
 | Feed | `Phase4*` |
 
-Manual UI: `./build/apps/desktop/trading-app --db /tmp/demo.db` then register → deposit → BUY → confirm cash, position, ledger.
+Manual UI: `./build/apps/desktop/trading-app --db /tmp/demo.db` then register → deposit → LIMIT BUY below last → confirm working order → Start Feed or wait for cross → fill.
 
 ## G. Stop and ask
 
 - Live market data, broker APIs, or moving money to integer cents
 - Replacing SQLite with Postgres
-- Rebuilding the Widgets windows as the main UI
-- Large drive-by refactors (`service/` deletion, renaming all members)
+- True CLOB (match buy vs sell instead of last price)
+- Rebuilding a Widgets UI as the main app
+- Large drive-by refactors (renaming all members)
 
 ## Anti-patterns
 
@@ -81,5 +83,5 @@ Manual UI: `./build/apps/desktop/trading-app --db /tmp/demo.db` then register �
 - Committing a transaction after a validation/`Result` failure
 - Using feed last-tick price from outside the order `Transaction`
 - New god class beside `AppBootstrap` / `TradingAppBridge`
-- Editing `docs/samples/` instead of production headers
+- Editing historical docs instead of production headers
 - Adding files to disk but not to CMake / `qml.qrc`

@@ -1,5 +1,7 @@
 # 03 — Domain Model
 
+Live types: `include/domain/*.hpp`. Logged-in ids live in `AuthSession` (`include/application/ports.hpp`), not a process-global session.
+
 ## 1. Mục tiêu
 
 Định nghĩa ngôn ngữ chung (ubiquitous language) và cấu trúc đối tượng nghiệp vụ. Code domain phải đọc được gần như đặc tả.
@@ -136,7 +138,7 @@ enum class OrderStatus { Pending, Filled, Rejected, Canceled };
 enum class LedgerType { Deposit, Withdraw, Buy, Sell, Fee, Adjustment };
 ```
 
-Ưu tiên `enum class` thay `typedef enum` kiểu C trong `service/status.h` (migrate dần).
+Enums dùng `enum class` (`OrderSide`, `OrderStatus`, `LedgerType`, `ErrorCode`).
 
 ---
 

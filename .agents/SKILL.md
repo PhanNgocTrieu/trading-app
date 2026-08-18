@@ -13,11 +13,11 @@ Self-prompt from this file on every task. Details: [project-map.md](project-map.
 
 ## Product (v1 done)
 
-Desktop paper trading: register/login, deposit/withdraw with ledger, mock quotes, market BUY/SELL, positions + uPnL. Not a live broker.
+Desktop paper trading: register/login, deposit/withdraw with ledger, mock quotes, market **and limit** BUY/SELL (resting book vs last price), positions + uPnL. Not a live broker.
 
 | In | Out unless asked |
 |----|------------------|
-| Auth, wallet, market orders, mock feed, QML UI, SQLite | Live broker, margin/short, options, Postgres, fees, limit-order book, integer cents |
+| Auth, wallet, market + limit orders, mini book, mock feed, QML UI, SQLite | Live broker, margin/short, options, Postgres, fees, true CLOB, integer cents |
 
 Optional next work lives in `docs/07-implementation-plan.md` (Phase 5+).
 
@@ -40,7 +40,7 @@ Rules for the loop:
 2. **Read the current owner.** Prefer extending `AuthAppService` / `WalletAppService` / `OrderAppService` / `TradingAppBridge` over new facades.
 3. **Smallest vertical slice.** One use-case (e.g. withdraw validation), not a layer rewrite.
 4. **Match existing shape.** Mirror neighboring headers: `Result<T>`, ports in `include/application/ports.hpp`, DTOs in `apps/desktop/dto.hpp`.
-5. **Test at the right phase.** Domain → `tests/phase0` or `phase2`; persistence → `phase1`; order flow → `phase2`; Qt → `phase3`/`phase4`.
+5. **Test at the right phase.** Domain → `tests/phase0` or `phase2`; persistence → `phase1`; order flow → `phase2`; limits → `phase6`; Qt → `phase3`/`phase4`.
 6. **Stop at the boundary.** UI bugs stay in `apps/desktop`. Matching bugs stay in `MatchingEngine` / `Position`.
 
 If the request spans layers (e.g. “add withdraw to the UI”), implement **application first**, then controller/bridge, then QML — never the reverse.
@@ -53,7 +53,7 @@ main.cpp
       → AppBootstrap                  # SQLite + repos + *AppService
       → AuthController / WalletController / OrderController
       → MockMarketDataFeed
-      → QuoteTableModel / PositionTableModel
+      → QuoteTableModel / PositionTableModel / book + working-order models
 ```
 
 Default DB: `~/.trading-app/trading.db`. Override: `./build/apps/desktop/trading-app --db /tmp/demo.db`.
@@ -81,6 +81,8 @@ Enums: `OrderSide`, `OrderType`, `OrderStatus`, `LedgerType`. SQL stores `'BUY'`
 - **Never** change `cash_balance` without a `ledger_entries` row in the same `Transaction`.
 - Rejected orders must not mutate cash, position, or ledger.
 - Market fill price = `market_quotes.last_price` read **inside** the order transaction (do not use a stale feed tick).
+- Limit that is not marketable rests as `PENDING`. Fill happens inside `setQuotePrice` (same transaction as the quote write).
+- Resting BUY/SELL reserve buying power / shares (`qty * limit` / qty) without changing `cash_balance` until fill.
 - `Position::applyBuy` / `applySell` own average-cost math. Persist via `IPositionRepository::upsert`.
 
 ## QML contract
@@ -93,7 +95,9 @@ Context property: **`app`**.
 | Header chips | `cash`, `equity`, `unrealizedPnl` |
 | Market watch | `quoteModel` |
 | Portfolio | `positionModel` |
-| Ticket | `placeMarketOrder`, `symbols` |
+| Ticket | `placeMarketOrder`, `placeLimitOrder`, `symbols` |
+| Working orders | `workingOrderModel`, `cancelOrder` |
+| Mini book | `bidModel`, `askModel`, `bookSymbol` / `setBookSymbol` |
 | Feed toggle | `setFeedActive` |
 
 New UI state → `Q_PROPERTY` / `Q_INVOKABLE` on the bridge (and a controller if it is a use-case). Theme tokens live in `apps/desktop/qml/Theme.qml`.
@@ -122,5 +126,6 @@ Full filter recipes: `docs/testing.md`.
 | Style | `docs/08-coding-standards.md` |
 | Tree / targets | `docs/project-structure.md` |
 | QML map | `docs/phase5-notes.md` |
+| Limit book | `docs/phase6-notes.md` |
 
-`docs/samples/` is historical reference, not the live API. Prefer `include/` + `apps/desktop/`.
+Live API is `include/` + `apps/desktop/`. Do not add a `service/` adapter or Widgets windows.

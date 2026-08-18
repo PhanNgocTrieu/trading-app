@@ -1,6 +1,6 @@
 #pragma once
 
-// TradingAppBridge — QML façade (Phase 5)
+// TradingAppBridge — QML façade (Phase 5–6)
 //
 // QML must not talk to SQLite or domain services directly. This QObject:
 //   1. Owns AppBootstrap + Auth/Wallet/Order controllers + mock price feed
@@ -15,8 +15,10 @@
 #include "controllers/wallet_controller.hpp"
 #include "dto.hpp"
 #include "market/mock_market_data_feed.hpp"
+#include "models/order_book_table_model.hpp"
 #include "models/position_table_model.hpp"
 #include "models/quote_table_model.hpp"
+#include "models/working_order_table_model.hpp"
 
 #include <QAbstractTableModel>
 #include <QObject>
@@ -43,8 +45,12 @@ class TradingAppBridge : public QObject {
     // List models for Market Watch / Portfolio panels (roleNames set for QML).
     Q_PROPERTY(QAbstractTableModel* quoteModel READ quoteModel CONSTANT)
     Q_PROPERTY(QAbstractTableModel* positionModel READ positionModel CONSTANT)
+    Q_PROPERTY(QAbstractTableModel* bidModel READ bidModel CONSTANT)
+    Q_PROPERTY(QAbstractTableModel* askModel READ askModel CONSTANT)
+    Q_PROPERTY(QAbstractTableModel* workingOrderModel READ workingOrderModel CONSTANT)
     // Symbol list for the order-ticket ComboBox.
     Q_PROPERTY(QStringList symbols READ symbols NOTIFY symbolsChanged)
+    Q_PROPERTY(QString bookSymbol READ bookSymbol WRITE setBookSymbol NOTIFY bookSymbolChanged)
 
 public:
     explicit TradingAppBridge(const std::string& dbPath, QObject* parent = nullptr);
@@ -60,16 +66,25 @@ public:
     QString dbPath() const { return dbPath_; }
     QAbstractTableModel* quoteModel() { return &quoteModel_; }
     QAbstractTableModel* positionModel() { return &positionModel_; }
+    QAbstractTableModel* bidModel() { return &bidModel_; }
+    QAbstractTableModel* askModel() { return &askModel_; }
+    QAbstractTableModel* workingOrderModel() { return &workingOrderModel_; }
     QStringList symbols() const { return symbols_; }
+    QString bookSymbol() const { return bookSymbol_; }
 
     // Invoked from LoginPage / OrderTicket / ShellPage buttons.
     Q_INVOKABLE void login(const QString& username, const QString& password);
     Q_INVOKABLE void registerUser(const QString& username, const QString& password);
     Q_INVOKABLE void logout();
     Q_INVOKABLE void deposit(double amount);
+    Q_INVOKABLE void withdraw(double amount);
     Q_INVOKABLE void placeMarketOrder(const QString& symbol, const QString& side, int qty);
+    Q_INVOKABLE void placeLimitOrder(const QString& symbol, const QString& side, int qty,
+                                     double limitPrice);
+    Q_INVOKABLE void cancelOrder(int orderId);
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void setFeedActive(bool active);
+    Q_INVOKABLE void setBookSymbol(const QString& symbol);
     Q_INVOKABLE void clearAuthError();
 
 signals:
@@ -82,6 +97,7 @@ signals:
     void statusMessageChanged();
     void authErrorChanged();
     void symbolsChanged();
+    void bookSymbolChanged();
     // Fired on each mock-feed tick so ShellPage can flash the uPnL chip.
     void metricsFlashed();
 
@@ -102,6 +118,9 @@ private:
     MockMarketDataFeed feed_;
     QuoteTableModel quoteModel_;
     PositionTableModel positionModel_;
+    OrderBookTableModel bidModel_;
+    OrderBookTableModel askModel_;
+    WorkingOrderTableModel workingOrderModel_;
 
     QString dbPath_;
     bool loggedIn_{false};
@@ -113,6 +132,7 @@ private:
     QString statusMessage_;
     QString authError_;
     QStringList symbols_;
+    QString bookSymbol_;
     QVector<PositionUiDto> positions_;
 };
 

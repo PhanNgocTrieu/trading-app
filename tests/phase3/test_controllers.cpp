@@ -37,6 +37,8 @@ protected:
         qRegisterMetaType<desktop::OrderUiDto>("desktop::OrderUiDto");
         qRegisterMetaType<desktop::PositionUiDto>("desktop::PositionUiDto");
         qRegisterMetaType<QVector<desktop::PositionUiDto>>("QVector<desktop::PositionUiDto>");
+        qRegisterMetaType<QVector<desktop::OrderUiDto>>("QVector<desktop::OrderUiDto>");
+        qRegisterMetaType<QVector<desktop::BookLevelUiDto>>("QVector<desktop::BookLevelUiDto>");
     }
 
     void SetUp() override {
@@ -124,6 +126,27 @@ TEST_F(Phase3Fixture, PlaceMarketOrder_EmitsRejected) {
     EXPECT_EQ(accepted.count(), 0);
     ASSERT_EQ(rejected.count(), 1);
     EXPECT_FALSE(rejected.takeFirst().at(0).toString().isEmpty());
+}
+
+TEST_F(Phase3Fixture, PlaceLimitOrder_EmitsAcceptedWhenResting) {
+    auth_->registerUser(QStringLiteral("limiter"), QStringLiteral("secret1"));
+    wallet_->deposit(10000.0);
+
+    QSignalSpy accepted(orders_.get(), &desktop::OrderController::orderAccepted);
+    QSignalSpy rejected(orders_.get(), &desktop::OrderController::orderRejected);
+    QSignalSpy working(orders_.get(), &desktop::OrderController::workingOrdersUpdated);
+
+    orders_->placeLimitOrder(QStringLiteral("AAPL"), QStringLiteral("BUY"), 10, 180.0);
+
+    ASSERT_EQ(accepted.count(), 1) << (rejected.isEmpty() ? "" : rejected.takeFirst().at(0).toString().toStdString());
+    EXPECT_EQ(rejected.count(), 0);
+    EXPECT_GE(working.count(), 1);
+
+    const auto order = accepted.takeFirst().at(0).value<desktop::OrderUiDto>();
+    EXPECT_EQ(order.symbol, QStringLiteral("AAPL"));
+    EXPECT_EQ(order.status, QStringLiteral("PENDING"));
+    EXPECT_TRUE(order.hasLimitPrice);
+    EXPECT_DOUBLE_EQ(order.limitPrice, 180.0);
 }
 
 TEST(Phase3PortfolioPresentationTest, Refresh_MapsPortfolioDto) {

@@ -48,7 +48,7 @@ Làm theo thứ tự. Mỗi bài: viết file `.cpp` riêng, compile đúng `-st
 
 1. Viết `expected<int, OrderError> placeBuy`.
 2. Dùng `println` in kết quả.
-3. So sánh design `expected` với `Result<T>` trong `docs/samples/phase0/result.hpp`.
+3. So sánh design `expected` với `Result<T>` trong `include/domain/result.hpp`.
 
 ---
 

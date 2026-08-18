@@ -62,13 +62,13 @@ if (!result.ok()) {
 - QObject parent tree for QObject children; `std::unique_ptr` for non-QObject graph (`AppBootstrap`).
 - New `.qml` files must be listed in `apps/desktop/qml.qrc` or they will not load from `qrc:/`.
 - Do not put business math in QML (avg cost, buying power, fill rules).
-- `apps/desktop/windows/` is unused; do not add features there.
+- `apps/desktop/` is QML only. Do not add Widgets windows.
 
 ## Tests
 
-- GoogleTest. Names: `Suite.Unit_Behavior` (e.g. `Phase1Fixture.Deposit_PersistsBalanceAndLedger`).
+- GoogleTest. Names: `Suite.Unit_Behavior` (e.g. `AppFixture.Deposit_PersistsBalanceAndLedger`).
 - Domain tests must not create `QApplication`.
-- Phase 1+ reuse `Phase1Fixture` (`:memory:`). Call `resetCurrentSession()` when touching global session.
+- Phase 1+ reuse `AppFixture` from `tests/support/app_fixture.hpp`.
 - Prefer `loginWithCredentials` over UI/stdin helpers.
 - Production bug → add a regression test in the matching phase when feasible.
 

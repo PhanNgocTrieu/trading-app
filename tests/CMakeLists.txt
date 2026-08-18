@@ -19,15 +19,15 @@ set(TRADING_TEST_SOURCES
     phase0/test_user.cpp
     phase0/test_stock.cpp
     phase0/test_order_types.cpp
-    phase0/test_session.cpp
-    phase0/test_login_service.cpp
-    phase0/test_bank_service.cpp
+    phase0/test_auth.cpp
+    phase0/test_wallet.cpp
     phase1/test_password_hasher.cpp
     phase1/test_sqlite_infra.cpp
     phase1/test_auth_wallet.cpp
     phase2/test_position.cpp
     phase2/test_matching_engine.cpp
     phase2/test_order_flow.cpp
+    phase6/test_limit_orders.cpp
 )
 
 set(TRADING_TEST_HAS_QT OFF)
@@ -47,13 +47,12 @@ endif()
 add_executable(trading_unit_tests ${TRADING_TEST_SOURCES})
 
 target_include_directories(trading_unit_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/service
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 target_link_libraries(trading_unit_tests PRIVATE
-    service
+    trading_core
     GTest::gtest_main
 )
 

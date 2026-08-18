@@ -6,7 +6,7 @@
 - Tên loại: `PascalCase` (`OrderService`)
 - Hàm/biến: `camelCase` hoặc `snake_case` — **chọn 1 và giữ nhất quán**
   - Khuyến nghị dần về `camelCase` cho member methods kiểu Qt, `snake_case` cho DB column
-- Member variables: `m_` prefix (đang dùng trong repo) **hoặc** trailing `_` — chọn 1
+- Member variables: trailing `_` (`db_`, `qty_`). Không dùng `m_` cho code mới.
 - Enum: `enum class`
 - Header guard hoặc `#pragma once` (thống nhất `#pragma once` cho code mới)
 
@@ -44,7 +44,7 @@
 ## 6. Testing
 
 - Dùng GoogleTest; hướng dẫn chạy: [testing.md](./testing.md)
-- Test domain không link Qt Widgets
+- Test domain/engine không link Qt; controller tests link `trading_desktop` + Qt Test
 - Đặt tên: `Unit_Behavior` (ví dụ `AccountTest.DepositIncreasesBalance`)
 - Mỗi bug production → thêm 1 regression test nếu có thể
 

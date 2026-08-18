@@ -119,7 +119,11 @@ public:
                        int quantity,
                        std::optional<double> limitPrice,
                        OrderStatus status) = 0;
+    virtual std::optional<OrderRow> findById(int orderId) = 0;
     virtual std::vector<OrderRow> listRecent(int accountId, int limit) = 0;
+    virtual std::vector<OrderRow> listPendingByAccount(int accountId) = 0;
+    virtual std::vector<OrderRow> listPendingBySymbol(const std::string& symbol) = 0;
+    virtual void updateStatus(int orderId, OrderStatus status) = 0;
 };
 
 class ITradeRepository {

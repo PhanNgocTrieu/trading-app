@@ -32,7 +32,7 @@ Bạn đang làm gì?
 Hiện trạng liên quan:
 
 - Root `CMakeLists.txt`: `cxx_std_11`
-- `service/CMakeLists.txt`: `CMAKE_CXX_STANDARD 17` (không thống nhất)
+- Root `CMakeLists.txt`: `CMAKE_CXX_STANDARD 17`
 
 ### Bước migrate
 

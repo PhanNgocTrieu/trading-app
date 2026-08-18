@@ -6,15 +6,15 @@
 
 Một desktop app rõ ràng, không fancy:
 
-1. **LoginWindow** — đăng nhập / đăng ký
-2. **MainWindow** — shell với trang:
-   - Overview (cash, equity, PnL)
+1. **LoginPage.qml** — đăng nhập / đăng ký
+2. **ShellPage.qml** — shell với:
+   - Overview chips (cash, equity, PnL)
    - Market Watch
-   - Order Ticket
+   - Order Ticket (market + limit)
    - Portfolio
-   - Orders / Trades / Ledger history
+   - Working orders + mini book
 
-Phong cách: Qt Widgets + layouts cơ bản.
+Phong cách: Qt Quick/QML. Live CMake: `apps/desktop/CMakeLists.txt` (`Quick` + `QuickControls2`). Widgets `LoginWindow` / `MainWindow` đã gỡ.
 
 ---
 
@@ -37,16 +37,14 @@ Ví dụ thư mục:
 ```text
 apps/desktop/
   main.cpp
-  windows/
-    login_window.h/.cpp
-    main_window.h/.cpp
-  views/
-    portfolio_view.h/.cpp
-    order_ticket_view.h/.cpp
-    market_watch_view.h/.cpp
+  bridge/trading_app_bridge.*
   controllers/
-    auth_controller.h/.cpp
-    order_controller.h/.cpp
+  models/
+  market/
+  qml/
+    Main.qml
+    pages/
+    components/
 ```
 
 ---
@@ -190,27 +188,15 @@ Lợi ích: tách data khỏi view; refresh bằng `beginResetModel/endResetMode
 
 ## 8. CMake + Qt modules
 
+Live desktop target (`apps/desktop/CMakeLists.txt`):
+
 ```cmake
-cmake_minimum_required(VERSION 3.21)
-project(trading-app LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-
-find_package(Qt6 REQUIRED COMPONENTS Widgets Sql)
-
-add_executable(trading-app
-    apps/desktop/main.cpp
-    apps/desktop/windows/login_window.cpp
-    apps/desktop/windows/main_window.cpp
-    # domain/application/infrastructure sources...
-)
-
-target_link_libraries(trading-app PRIVATE Qt6::Widgets Qt6::Sql)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2)
 ```
 
-`CMAKE_AUTOMOC ON` bắt buộc khi có `Q_OBJECT`.
+`CMAKE_AUTOMOC ON` bắt buộc khi có `Q_OBJECT`. Do not add `Widgets` / `AUTOUIC`.
 
 ---
 
@@ -241,58 +227,30 @@ inline QString toQ(const std::string& s) { return QString::fromStdString(s); }
 
 ---
 
-## 11. Migration từ console Dashboard
+## 11. Presentation map (as-built)
 
-Hiện `Dashboard::actionDashboard()` đang `cin` menu 1–4.
+Console `Dashboard` và Qt Widgets windows đã gỡ. QML map:
 
-Ánh xạ:
-
-| Console | Qt |
-|---------|-----|
-| showLoginDashboard | `LoginWindow` |
-| option 1 View Account | Overview tab |
-| option 2 Deposit | Wallet dialog/tab |
-| option 3 Withdraw | Wallet dialog/tab |
-| option 4 Trade | Order ticket tab |
-
-Có thể giữ console app target `trading-app-cli` song song trong Phase 3 để so sánh/test.
+| Use-case | QML / C++ |
+|----------|-----------|
+| Login / register | `LoginPage.qml` → `app.login` / `app.registerUser` |
+| Overview | Shell header chips (`cash`, `equity`, `unrealizedPnl`) |
+| Deposit / withdraw | Shell wallet controls → wallet controller |
+| Trade | `OrderTicket.qml` → `placeMarketOrder` / `placeLimitOrder` |
+| Book / working | `OrderBookPanel.qml`, `WorkingOrdersPanel.qml` |
 
 ---
 
-## 12. Skeleton main.cpp (Qt)
+## 12. Composition root
 
-```cpp
-#include <QApplication>
-#include "windows/login_window.h"
-#include "windows/main_window.h"
-#include "controllers/auth_controller.h"
-// #include infrastructure bootstrap...
+Live entry: `apps/desktop/main.cpp`.
 
-int main(int argc, char* argv[]) {
-    QApplication app(argc, argv);
-    QApplication::setApplicationName("Trading App");
-
-    // Bootstrap services (composition root)
-    // auto services = bootstrap();
-
-    AuthController authController{/* services.auth */};
-    LoginWindow login;
-    MainWindow mainWindow{/* controllers */};
-
-    QObject::connect(&login, &LoginWindow::loginRequested,
-                     &authController, &AuthController::login);
-    QObject::connect(&authController, &AuthController::loginSucceeded,
-                     &login, [&](const SessionDto& s){
-                         login.hide();
-                         mainWindow.setSession(s);
-                         mainWindow.show();
-                     });
-    QObject::connect(&authController, &AuthController::authFailed,
-                     &login, &LoginWindow::showError);
-
-    login.show();
-    return app.exec();
-}
+```text
+QGuiApplication
+  → TradingAppBridge(dbPath)
+      → AppBootstrap
+      → Auth / Wallet / Order controllers
+      → QML engine, context property `app`
 ```
 
-Chi tiết file mẫu: `docs/samples/phase3/`.
+Chi tiết UI: `apps/desktop/qml/` và [phase5-notes.md](./phase5-notes.md).

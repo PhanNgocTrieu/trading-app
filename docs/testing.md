@@ -25,7 +25,7 @@ cmake --build build
 This produces:
 
 ```text
-build/trading-app
+build/apps/desktop/trading-app
 build/tests/trading_unit_tests
 ```
 
@@ -64,20 +64,20 @@ ctest --test-dir build -N                               # list tests, don't run
 
 ## 4. Run tests by phase
 
-### Phase 0 — domain + session helpers
+### Phase 0 — domain types
 
 ```bash
 ./build/tests/trading_unit_tests \
-  --gtest_filter='ResultTest.*:AccountTest.*:UserTest.*:StockTest.*:OrderTypesTest.*:SessionTest.*'
+  --gtest_filter='ResultTest.*:AccountTest.*:UserTest.*:StockTest.*:OrderTypesTest.*:Phase0*'
 ```
 
-Login/Bank fixtures that use SQLite are under `Phase1Fixture` (see Phase 1).
+Auth/wallet smoke tests: `Phase0AuthTest.*` / `Phase0WalletTest.*`.
 
 ### Phase 1 — SQLite auth + wallet (most common)
 
 ```bash
 ./build/tests/trading_unit_tests \
-  --gtest_filter='PasswordHasherTest.*:SqliteInfrastructureTest.*:Phase1Fixture.*:Phase1PersistenceTest.*'
+  --gtest_filter='PasswordHasherTest.*:SqliteInfrastructureTest.*:Phase1*'
 ```
 
 Or with ctest regex:
@@ -90,7 +90,7 @@ ctest --test-dir build -R 'PasswordHasher|SqliteInfrastructure|Phase1' --output-
 |-------|----------------|
 | `PasswordHasherTest.*` | `hash` / `verify` |
 | `SqliteInfrastructureTest.*` | connection, transaction commit/rollback, migrations |
-| `Phase1Fixture.*` | register, login, deposit, withdraw, ledger |
+| `Phase1AuthWalletTest.*` | register, login, deposit, withdraw, ledger |
 | `Phase1PersistenceTest.*` | restart app → still login + cash persisted |
 
 ### Phase 2 — Position + MatchingEngine + order flow
@@ -106,7 +106,7 @@ ctest --test-dir build -R 'PositionTest|MatchingEngineTest|Phase2' --output-on-f
 
 ### Phase 3 — Qt controllers + table model
 
-Requires Qt6 Widgets/Test (same `CMAKE_PREFIX_PATH` as the desktop app).
+Requires Qt6 Quick/Test (same `CMAKE_PREFIX_PATH` as the desktop app).
 
 ```bash
 ./build/tests/trading_unit_tests \
@@ -117,16 +117,29 @@ Requires Qt6 Widgets/Test (same `CMAKE_PREFIX_PATH` as the desktop app).
 ctest --test-dir build -R 'Phase3' --output-on-failure
 ```
 
-### Phase 4 — Mock market feed + mark-to-market
+### Phase 4 — mock feed / mark-to-market
 
 ```bash
-./build/tests/trading_unit_tests \
-  --gtest_filter='Phase4*'
+./build/tests/trading_unit_tests --gtest_filter='Phase4*'
 ```
 
 ```bash
 ctest --test-dir build -R 'Phase4' --output-on-failure
 ```
+
+### Phase 6 — Limit orders + mini book
+
+```bash
+./build/tests/trading_unit_tests --gtest_filter='Phase6*'
+```
+
+```bash
+ctest --test-dir build -R 'Phase6' --output-on-failure
+```
+
+| Suite | What it covers |
+|-------|----------------|
+| `Phase6LimitOrderTest.*` | rest, fill-on-cross, cancel, reserved buying power, book aggregate |
 
 ---
 
@@ -148,7 +161,7 @@ Filter one test case:
 
 ```bash
 ./build/tests/trading_unit_tests \
-  --gtest_filter=Phase1Fixture.Deposit_PersistsBalanceAndLedger
+  --gtest_filter=Phase1AuthWalletTest.Deposit_PersistsBalanceAndLedger
 ```
 
 Filter several patterns (colon-separated):
@@ -176,7 +189,7 @@ Exclude a pattern:
 ./build/tests/trading_unit_tests --gtest_filter=SqliteInfrastructureTest.*
 
 # Auth + wallet use-cases
-./build/tests/trading_unit_tests --gtest_filter=Phase1Fixture.*
+./build/tests/trading_unit_tests --gtest_filter=Phase1AuthWalletTest.*
 
 # Persistence across process reopen
 ./build/tests/trading_unit_tests --gtest_filter=Phase1PersistenceTest.*
@@ -189,12 +202,13 @@ Exclude a pattern:
 ```text
 tests/
 ├── CMakeLists.txt
-├── phase0/     # Result, Account, User, Stock, enums, Session + login/bank smoke
+├── support/    # AppFixture — in-memory AppBootstrap
+├── phase0/     # Result, Account, User, Stock, enums, auth/wallet smoke
 ├── phase1/     # hasher, sqlite infra, auth/wallet, persistence
-│   └── test_support.hpp   # shared Phase1Fixture (:memory: DB)
-├── phase2/     # Position, MatchingEngine
-├── phase3/     # DISABLED scaffolds (Qt controllers later)
-└── phase4/     # DISABLED scaffolds (market feed later)
+├── phase2/     # Position, MatchingEngine, order flow
+├── phase3/     # Qt controllers + table model
+├── phase4/     # mock feed / mark-to-market
+└── phase6/     # limit rest/fill/cancel + order book
 ```
 
 ---
@@ -206,7 +220,7 @@ tests/
 | GoogleTest download fails | Ensure network on first `cmake -S ...`; retry configure |
 | `SQLite3` not found | Install SQLite dev package / Xcode CLT; reconfigure |
 | Stale tests after file moves | `rm -rf build && cmake -S . -B build -DTRADING_APP_BUILD_TESTS=ON && cmake --build build` |
-| Want less log noise | Redirect: `./build/tests/trading_unit_tests --gtest_filter=Phase1Fixture.* 2>/dev/null` |
+| Want less log noise | Redirect: `./build/tests/trading_unit_tests --gtest_filter=Phase1AuthWalletTest.Deposit_PersistsBalanceAndLedger 2>/dev/null` |
 
 ---
 
@@ -224,6 +238,5 @@ cmake --build build
 Conventions:
 
 - Prefer `TEST` / `TEST_F` names like `Unit_Behavior`
-- For Phase 1+, reuse `Phase1Fixture` from `tests/phase1/test_support.hpp`
-- Call `resetCurrentSession()` in fixtures when touching global session
-- Keep domain tests free of UI / stdin (`loginWithCredentials`, not `requestLogin`)
+- For SQLite/app tests, reuse `AppFixture` from `tests/support/app_fixture.hpp`
+- Keep domain tests free of UI (`AuthAppService::login`, not stdin helpers)

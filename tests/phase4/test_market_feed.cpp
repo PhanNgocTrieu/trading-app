@@ -42,6 +42,8 @@ void ensureQtApp() {
     qRegisterMetaType<desktop::QuoteUiDto>("desktop::QuoteUiDto");
     qRegisterMetaType<QVector<desktop::PositionUiDto>>("QVector<desktop::PositionUiDto>");
     qRegisterMetaType<QVector<desktop::QuoteUiDto>>("QVector<desktop::QuoteUiDto>");
+    qRegisterMetaType<QVector<desktop::OrderUiDto>>("QVector<desktop::OrderUiDto>");
+    qRegisterMetaType<QVector<desktop::BookLevelUiDto>>("QVector<desktop::BookLevelUiDto>");
 }
 
 class Phase4Fixture : public ::testing::Test {

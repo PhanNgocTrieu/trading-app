@@ -39,11 +39,11 @@ Tài liệu này là **roadmap thực thi**. Mỗi phase có: mục tiêu, lý t
 
 ### Code mẫu
 
-Xem:
+Xem code live:
 
-- `samples/phase0/result.hpp`
-- `samples/phase0/account.hpp`
-- `samples/phase0/order_types.hpp`
+- `include/domain/result.hpp`
+- `include/domain/account.hpp`
+- `include/domain/order_types.hpp`
 
 ### DoD Phase 0
 
@@ -90,10 +90,10 @@ Xem:
 
 ### Code mẫu
 
-- `samples/phase1/001_init.sql`
-- `samples/phase1/sqlite_connection.hpp`
-- `samples/phase1/transaction.hpp`
-- `samples/phase1/auth_app_service.hpp`
+- `sql/001_init.sql`
+- `include/infrastructure/db/sqlite_connection.hpp`
+- `include/infrastructure/db/transaction.hpp`
+- `include/application/auth_app_service.hpp`
 
 ### DoD Phase 1
 
@@ -138,9 +138,9 @@ Connection → migrate → UserRepo → Auth → AccountRepo/Ledger → Wallet �
 
 ### Code mẫu
 
-- `samples/phase2/matching_engine.hpp`
-- `samples/phase2/order_app_service.md` (pseudo đầy đủ)
-- `samples/phase2/position.hpp`
+- `include/engine/matching_engine.hpp`
+- `src/application/order_app_service.cpp`
+- `include/domain/position.hpp`
 
 ### DoD Phase 2
 
@@ -161,8 +161,8 @@ Connection → migrate → UserRepo → Auth → AccountRepo/Ledger → Wallet �
 
 ### Mục tiêu
 
-- Qt Widgets app thay console (hoặc song song)
-- LoginWindow + MainWindow
+- Qt Quick app (`trading-app`) — **done** (QML, not Widgets)
+- LoginPage + ShellPage
 - Order ticket + portfolio table
 - Wiring controllers ↔ app services
 
@@ -182,9 +182,9 @@ Connection → migrate → UserRepo → Auth → AccountRepo/Ledger → Wallet �
 
 ### Code mẫu
 
-- `samples/phase3/login_window.hpp`
-- `samples/phase3/main_window.hpp`
-- `samples/phase3/CMakeLists.qt.snippet.cmake`
+- `apps/desktop/qml/pages/LoginPage.qml`
+- `apps/desktop/qml/pages/ShellPage.qml`
+- `apps/desktop/CMakeLists.txt`
 
 ### DoD Phase 3
 
@@ -225,7 +225,7 @@ Week slice D: Portfolio + history tables
 
 ### Code mẫu
 
-- `samples/phase4/mock_market_feed.hpp`
+- `apps/desktop/market/mock_market_data_feed.hpp`
 
 ### DoD Phase 4 (v1 shippable for learning)
 
@@ -244,9 +244,34 @@ Week slice D: Portfolio + history tables
 - [x] QML light-studio UI (`apps/desktop/qml`) via `TradingAppBridge`
 - [x] Keep Market orders + mock feed; Widgets windows no longer the app entry
 
+## Phase 6 — Limit orders + mini book
+
+### Mục tiêu
+
+- Limit BUY/SELL: marketable khớp ngay với last price; không marketable thì **rest** (`PENDING`)
+- Khi mock feed / `setQuotePrice` đưa giá xuyên limit → fill FIFO trong cùng transaction
+- Mini book (bids/asks gom theo giá) + working orders + cancel
+- Buying power: cash/shares trừ notional resting (chưa trừ cash đến lúc fill)
+
+### Việc đã làm
+
+1. `OrderAppService::placeLimitOrder` / `cancelOrder` / `workingOrders` / `orderBook`
+2. `setQuotePrice` fill resting limits
+3. QML ticket MARKET|LIMIT, `OrderBookPanel`, `WorkingOrdersPanel`
+4. GoogleTest `tests/phase6/`
+
+### DoD Phase 6
+
+- [x] Limit marketable fill at last price
+- [x] Limit không marketable rest, cash không đổi
+- [x] Quote cross → fill + ledger/trade/position
+- [x] Cancel pending; không fill sau khi cancel
+- [x] Reserved buying power chặn over-commit
+- [x] Mini book aggregate levels
+
 ### Still optional
 
-- Limit orders + mini order book
+- True CLOB (khớp buy vs sell, không chỉ last price)
 - Multi-account
 - PostgreSQL mode
 - Real market data API (Yahoo/Finnhub…) với rate limit

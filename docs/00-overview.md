@@ -27,7 +27,7 @@
 | Orders | Đặt lệnh, hủy lệnh (pending), trạng thái lệnh |
 | Matching | Engine khớp lệnh nội bộ (paper) |
 | Portfolio | Positions, avg cost, unrealized/realized PnL |
-| UI | Qt Widgets (sau này có thể mở rộng QML) |
+| UI | Qt 6 Quick (QML) |
 | Persistence | SQLite (dev) → có thể PostgreSQL (prod học) |
 
 ### Out-of-scope (v1)
@@ -45,11 +45,11 @@
 | Tầng | Công nghệ | Lý do chọn |
 |------|-----------|------------|
 | Language | C++17 (khuyến nghị nâng từ C++11 hiện tại) | Kiểm soát bộ nhớ, hiệu năng, phổ biến trong hệ thống tài chính |
-| UI / Platform | Qt 6 (Widgets trước) | Cross-platform, signals/slots, tooling mạnh, phù hợp desktop trading |
+| UI / Platform | Qt 6 Quick (QML) | Cross-platform desktop; QML binds to `TradingAppBridge` |
 | Build | CMake | Đã dùng trong repo; chuẩn công nghiệp |
 | DB | SQLite (Qt SQL / sqlite3) | Zero-ops cho desktop; dễ học transaction |
-| Logging | spdlog hoặc logger tự viết (bắt đầu từ `LoggerService`) | Quan sát hành vi hệ thống |
-| Test | Catch2 hoặc GoogleTest | Unit test domain/engine |
+| Logging | Controller / bridge messages (no password logs) | Quan sát hành vi hệ thống |
+| Test | GoogleTest | Unit test domain/engine/app + Qt Test for controllers |
 | Container | Docker / Dev Container | Môi trường build ổn định (đã có `.devcontainer`) |
 
 ---
@@ -60,28 +60,26 @@ Cấu trúc hiện tại (rút gọn) — chi tiết: [project-structure.md](./p
 
 ```text
 trading-app/
-├── ui/                 # Console UI
+├── apps/desktop/       # Qt Quick UI
 ├── include/            # application / domain / engine / infrastructure
 ├── src/                # trading_core implementations
-├── service/            # Login, Bank, Logger adapters
-├── sql/001_init.sql    # Schema (SQLite)
+├── sql/                # SQLite migrations
 ├── tests/              # GoogleTest by phase
 ├── docs/
 └── CMakeLists.txt
 ```
 
-Đã có (Phase 0–1):
+Đã có (Phase 0–6):
 
-- Domain tách `User` / `Account`, `Result`, order enums
-- SQLite persistence: auth + wallet + ledger
-- GoogleTest suite
-- Devcontainer + CMake C++17
+- Domain: `User` / `Account` / `Position` / `Result` / order enums
+- SQLite: auth, wallet, ledger, orders, positions, trades
+- Paper matching (market + resting limits vs last price)
+- Qt Quick desktop (`trading-app`)
+- GoogleTest suite via `AppFixture` / `AppBootstrap`
 
-Còn lại theo giai đoạn:
+Còn lại (optional, xem [07-implementation-plan.md](./07-implementation-plan.md)):
 
-- Phase 2: paper trading orders / matching wired to CLI
-- Phase 3: Qt UI
-- Phase 4: mock market feed + polish — **done**
+- Packaging / true CLOB / integer cents — **out of v1 unless asked**
 
 ---
 
@@ -89,13 +87,13 @@ Còn lại theo giai đoạn:
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
-│                     Qt Presentation                      │
-│   (Views / ViewModels / Controllers + signals/slots)     │
+│                     Qt Quick Presentation                │
+│   QML → TradingAppBridge → Controllers / models          │
 └───────────────────────────┬─────────────────────────────┘
                             │ Application Services
 ┌───────────────────────────▼─────────────────────────────┐
 │              Application / Use-case Layer                │
-│   AuthService, WalletService, OrderService, Portfolio    │
+│   AuthAppService, WalletAppService, OrderAppService      │
 └───────────────────────────┬─────────────────────────────┘
                             │
 ┌───────────────────────────▼─────────────────────────────┐
@@ -105,7 +103,7 @@ Còn lại theo giai đoạn:
                             │ Repository interfaces
 ┌───────────────────────────▼─────────────────────────────┐
 │                 Infrastructure (SQL / IO)                │
-│   SQLite repositories, MarketDataFeed (mock), Logger     │
+│   SQLite repositories, MockMarketDataFeed (desktop)      │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -129,13 +127,13 @@ Chi tiết: [07-implementation-plan.md](./07-implementation-plan.md).
 
 ## 7. Định nghĩa “xong” cho v1 (Definition of Done)
 
-- [ ] User đăng ký/đăng nhập; password hash (không lưu plain text)
-- [ ] Deposit/withdraw cập nhật balance qua SQL transaction
-- [ ] Đặt lệnh BUY/SELL market với cash/position đủ điều kiện
-- [ ] Sau khớp lệnh: ledger, trade history, position cập nhật đúng
-- [ ] Qt UI hiển thị portfolio + order history
-- [ ] Có unit tests cho matching + wallet
-- [ ] Có tài liệu schema và workflow khớp code
+- [x] User đăng ký/đăng nhập; password hash (không lưu plain text)
+- [x] Deposit/withdraw cập nhật balance qua SQL transaction
+- [x] Đặt lệnh BUY/SELL market với cash/position đủ điều kiện
+- [x] Sau khớp lệnh: ledger, trade history, position cập nhật đúng
+- [x] Qt Quick UI: portfolio, ticket, working orders, mini book
+- [x] Unit tests cho matching + wallet + limits
+- [x] Tài liệu schema và workflow khớp code
 
 ---
 
@@ -143,7 +141,7 @@ Chi tiết: [07-implementation-plan.md](./07-implementation-plan.md).
 
 1. Đọc lý thuyết liên quan trong `01-theory-foundations.md`
 2. Xem schema/workflow trước khi implement feature
-3. Copy code mẫu từ `samples/phaseX/` rồi adapt vào repo
+3. Đọc header live trong `include/` (không copy skeleton cũ)
 4. Đánh checklist trong phase tương ứng
 5. Chỉ sang phase sau khi DoD phase hiện tại đạt ≥ 80%
 

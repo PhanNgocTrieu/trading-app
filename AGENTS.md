@@ -1,7 +1,7 @@
 # trading-app — agent instructions
 
 Paper-trading desktop app: **C++17**, **SQLite**, **Qt 6 Quick (QML)**.
-Phases 0–5 are done. Console CLI is gone. Do not revive `ui/` or `trading-app-cli`.
+Phases 0–6 are done. Console CLI and Widgets windows are gone. Do not revive `ui/`, `service/`, or `apps/desktop/windows/`.
 
 **Before writing code, read [`.agents/SKILL.md`](.agents/SKILL.md).**  
 Then open only the supporting file you need:
@@ -35,12 +35,13 @@ engine        →  domain
 |---------|-------------|--------|
 | Invariants, avg cost, PnL, enums, `Result` | `include/domain/` | QML / SQL |
 | Matching fill/reject | `include/engine/matching_engine.hpp` | Controllers |
-| Register / login / deposit / place order | `include/application/` + `src/application/` | QML, `service/` |
+| Register / login / deposit / place market or limit | `include/application/` + `src/application/` | QML |
+| Resting book / cancel | `OrderAppService` | QML math |
 | SQL, repos, migrations | `sql/` + `include/infrastructure/` + `src/infrastructure/` | Domain |
 | Login UI, ticket, portfolio, feed | `apps/desktop/` (bridge → controllers → models → QML) | `trading_core` |
 | Tests | `tests/phaseN/` matching the phase | Ad-hoc mains |
 
-`service/` is a **test adapter** over app services. Do not put new business rules there.
+Tests call `AppBootstrap` + `*AppService` via `tests/support/app_fixture.hpp`. Do not add a console adapter layer.
 
 ## Defaults
 
@@ -49,4 +50,4 @@ engine        →  domain
 - Parameterized SQL only (`?`). New schema → new `sql/00N_*.sql` + `runMigrations`.
 - New `.cpp` → `src/CMakeLists.txt`. New test → `tests/CMakeLists.txt`. New QML → `apps/desktop/qml.qrc`.
 - Commit only when asked. Never commit `*.db`, `build/`, secrets.
-- Do not rewrite layers, expand to live brokers, or migrate money to integer cents unless asked.
+- Do not rewrite layers, expand to live brokers, true CLOB matching, or migrate money to integer cents unless asked.

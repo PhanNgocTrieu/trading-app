@@ -27,11 +27,21 @@ struct OrderUiDto {
     int orderId{0};
     QString symbol;
     QString side;
+    QString type;
     int quantity{0};
     double fillPrice{0.0};
+    double limitPrice{0.0};
+    bool hasLimitPrice{false};
     QString status;
     bool hasRealizedPnl{false};
     double realizedPnl{0.0};
+};
+
+struct BookLevelUiDto {
+    QString side;
+    double price{0.0};
+    int quantity{0};
+    int orderCount{0};
 };
 
 struct PositionUiDto {
@@ -55,5 +65,8 @@ Q_DECLARE_METATYPE(desktop::SessionDto)
 Q_DECLARE_METATYPE(desktop::OrderUiDto)
 Q_DECLARE_METATYPE(desktop::PositionUiDto)
 Q_DECLARE_METATYPE(desktop::QuoteUiDto)
+Q_DECLARE_METATYPE(desktop::BookLevelUiDto)
 Q_DECLARE_METATYPE(QVector<desktop::PositionUiDto>)
 Q_DECLARE_METATYPE(QVector<desktop::QuoteUiDto>)
+Q_DECLARE_METATYPE(QVector<desktop::OrderUiDto>)
+Q_DECLARE_METATYPE(QVector<desktop::BookLevelUiDto>)

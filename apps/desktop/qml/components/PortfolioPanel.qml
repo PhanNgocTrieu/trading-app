@@ -7,99 +7,122 @@ Rectangle {
     property var theme
     property var model
 
-    radius: theme ? theme.radiusLg : 16
-    color: theme ? theme.surface : "#FFFFFF"
-    border.color: theme ? theme.border : "#C5D0DC"
+    radius: theme ? theme.radiusLg : 18
+    color: theme ? theme.surface : "#152036"
+    border.color: theme ? theme.border : "#334766"
     border.width: 1
     clip: true
 
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: theme ? theme.spaceMd : 16
-        spacing: theme ? theme.spaceSm : 8
+        spacing: 10
 
-        Text {
-            text: "Portfolio"
-            font: theme ? theme.headingFont : font
-            color: theme ? theme.textPrimary : "#172033"
-        }
-
-        Rectangle {
+        RowLayout {
             Layout.fillWidth: true
-            height: 1
-            color: theme ? theme.border : "#C5D0DC"
+            spacing: 8
+            Rectangle {
+                width: 8
+                height: 8
+                radius: 4
+                color: theme ? theme.warning : "#FBBF24"
+            }
+            Text {
+                text: "Portfolio"
+                font: theme ? theme.headingFont : font
+                color: theme ? theme.textPrimary : "#EAF0FA"
+            }
+            Item { Layout.fillWidth: true }
         }
 
         ListView {
+            id: list
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
             model: root.model
-            spacing: 6
-
-            header: RowLayout {
-                width: ListView.view ? ListView.view.width : parent.width
-                spacing: 6
-                Text { Layout.preferredWidth: 58; text: "Symbol"; color: theme.textSecondary; font: theme.monoFont }
-                Text { Layout.preferredWidth: 40; text: "Qty"; color: theme.textSecondary; font: theme.monoFont }
-                Text { Layout.preferredWidth: 70; horizontalAlignment: Text.AlignRight; text: "Avg"; color: theme.textSecondary; font: theme.monoFont }
-                Text { Layout.preferredWidth: 70; horizontalAlignment: Text.AlignRight; text: "Last"; color: theme.textSecondary; font: theme.monoFont }
-                Text { Layout.fillWidth: true; horizontalAlignment: Text.AlignRight; text: "uPnL"; color: theme.textSecondary; font: theme.monoFont }
-            }
+            spacing: 8
+            boundsBehavior: Flickable.StopAtBounds
 
             delegate: Rectangle {
+                required property int index
+                required property string symbol
+                required property int quantity
+                required property double avgCost
+                required property double marketPrice
+                required property double unrealizedPnl
                 width: ListView.view.width
-                height: 38
-                radius: 8
-                color: index % 2 === 0 ? theme.surfaceMuted : "transparent"
+                height: 72
+                radius: 12
+                color: theme ? theme.surfaceMuted : "#223250"
+                border.width: 1
+                border.color: theme ? theme.border : "#334766"
+                clip: true
 
-                RowLayout {
+                Rectangle {
+                    width: 4
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    radius: 2
+                    color: unrealizedPnl >= 0
+                           ? (theme ? theme.buy : "#34D399")
+                           : (theme ? theme.sell : "#FB7185")
+                }
+
+                ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 8
+                    anchors.leftMargin: 14
+                    anchors.rightMargin: 12
+                    anchors.topMargin: 10
+                    anchors.bottomMargin: 10
                     spacing: 6
 
-                    Text {
-                        Layout.preferredWidth: 58
-                        text: symbol
-                        color: theme.textPrimary
-                        font: theme.monoFont
-                    }
-                    Text {
-                        Layout.preferredWidth: 40
-                        text: quantity
-                        color: theme.textPrimary
-                        font: theme.monoFont
-                    }
-                    Text {
-                        Layout.preferredWidth: 70
-                        horizontalAlignment: Text.AlignRight
-                        text: Number(avgCost).toFixed(2)
-                        color: theme.textPrimary
-                        font: theme.monoFont
-                    }
-                    Text {
-                        Layout.preferredWidth: 70
-                        horizontalAlignment: Text.AlignRight
-                        text: Number(marketPrice).toFixed(2)
-                        color: theme.textPrimary
-                        font: theme.monoFont
-                    }
-                    Text {
+                    RowLayout {
                         Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignRight
-                        text: (unrealizedPnl >= 0 ? "+" : "") + Number(unrealizedPnl).toFixed(2)
-                        color: unrealizedPnl >= 0 ? theme.success : theme.danger
-                        font: theme.monoFont
+                        Text {
+                            text: symbol
+                            color: theme ? theme.textPrimary : "#EAF0FA"
+                            font: theme ? theme.headingFont : font
+                        }
+                        Text {
+                            text: quantity + " sh"
+                            color: theme ? theme.textSecondary : "#8FA3C0"
+                            font: theme ? theme.bodyFont : font
+                        }
+                        Item { Layout.fillWidth: true }
+                        Text {
+                            text: (unrealizedPnl >= 0 ? "+" : "") + Number(unrealizedPnl).toFixed(2)
+                            color: unrealizedPnl >= 0
+                                   ? (theme ? theme.success : "#34D399")
+                                   : (theme ? theme.danger : "#FB7185")
+                            font: theme ? theme.monoFont : font
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Avg " + Number(avgCost).toFixed(2)
+                            elide: Text.ElideRight
+                            color: theme ? theme.textMuted : "#6B7F9A"
+                            font: theme ? theme.captionFont : font
+                        }
+                        Text {
+                            text: "Last " + Number(marketPrice).toFixed(2)
+                            color: theme ? theme.textMuted : "#6B7F9A"
+                            font: theme ? theme.captionFont : font
+                        }
                     }
                 }
             }
 
             Text {
                 anchors.centerIn: parent
-                visible: parent.count === 0
+                visible: list.count === 0
                 text: "No open positions"
-                color: theme.textSecondary
-                font: theme.bodyFont
+                color: theme ? theme.textSecondary : "#8FA3C0"
+                font: theme ? theme.bodyFont : font
             }
         }
     }

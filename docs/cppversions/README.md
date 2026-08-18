@@ -53,6 +53,6 @@ docs/cppversions/
 
 ## Liên hệ trading-app
 
-Repo hiện đang khai báo `cxx_std_11` / lẫn C++17 ở `service/`. Tài liệu kiến trúc dự án khuyến nghị **C++17** làm baseline (Phase 0).
+Repo khai báo **C++17** ở root `CMakeLists.txt`.
 
 Đọc nhanh: [08-choosing-and-migrating.md](./08-choosing-and-migrating.md).

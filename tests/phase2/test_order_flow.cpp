@@ -1,134 +1,100 @@
-#include "tests/phase1/test_support.hpp"
+#include "support/app_fixture.hpp"
 
-#include "trading.h"
+#include "domain/order_types.hpp"
 
 #include <filesystem>
-#include <memory>
 
-class Phase2Fixture : public ::testing::Test {
-protected:
-    void SetUp() override {
-        resetCurrentSession();
-        app_ = std::make_unique<AppBootstrap>(AppBootstrap::open(":memory:"));
-        logger_ = &Service::LoggerService::getInstance();
-        login_ = std::make_unique<Service::LoginService>(*logger_, app_->auth(), app_->accounts());
-        bank_ = std::make_unique<Service::BankAccountService>(*logger_, app_->wallet(), *login_);
-        trading_ =
-            std::make_unique<Service::TradingService>(*logger_, app_->orders(), *login_);
-    }
-
-    void TearDown() override {
-        trading_.reset();
-        bank_.reset();
-        login_.reset();
-        app_.reset();
-        resetCurrentSession();
-    }
-
-    std::unique_ptr<AppBootstrap> app_;
-    Service::LoggerService* logger_{nullptr};
-    std::unique_ptr<Service::LoginService> login_;
-    std::unique_ptr<Service::BankAccountService> bank_;
-    std::unique_ptr<Service::TradingService> trading_;
-};
-
-TEST_F(Phase2Fixture, SeedQuotes_AreAvailable) {
-    auto quotes = trading_->listQuotes();
+TEST_F(Phase2OrderFlowTest, SeedQuotes_AreAvailable) {
+    auto quotes = app_->orders().listQuotes();
     ASSERT_TRUE(quotes.ok());
     ASSERT_GE(quotes.value().size(), 3u);
 }
 
-TEST_F(Phase2Fixture, Acceptance_BuySellAvgCostAndReject) {
-    // 1. Register + Login
-    ASSERT_EQ(login_->registerWithCredentials("trader", "secret1"), LoginStatus::Success);
+TEST_F(Phase2OrderFlowTest, Acceptance_BuySellAvgCostAndReject) {
+    ASSERT_TRUE(registerUser("trader", "secret1").ok());
 
-    // 2. Deposit 10_000
-    auto deposited = bank_->deposit(10000.0);
+    auto deposited = app_->wallet().deposit(session_, 10000.0);
     ASSERT_TRUE(deposited.ok());
     EXPECT_DOUBLE_EQ(deposited.value(), 10000.0);
 
-    // 3. Buy 10 AAPL @ 190 → cash 8100, position 10/190, trade 1
-    auto buy1 = trading_->buyMarket("AAPL", 10);
+    auto buy1 = app_->orders().placeMarketOrder(session_, "AAPL", OrderSide::Buy, 10);
     ASSERT_TRUE(buy1.ok()) << buy1.message();
     EXPECT_DOUBLE_EQ(buy1.value().fillPrice, 190.0);
     EXPECT_EQ(buy1.value().status, OrderStatus::Filled);
 
-    auto cash = bank_->balance();
+    auto cash = app_->wallet().balance(session_);
     ASSERT_TRUE(cash.ok());
     EXPECT_DOUBLE_EQ(cash.value(), 8100.0);
 
-    auto portfolio = trading_->portfolio();
+    auto portfolio = app_->orders().portfolio(session_);
     ASSERT_TRUE(portfolio.ok());
     ASSERT_EQ(portfolio.value().size(), 1u);
     EXPECT_EQ(portfolio.value()[0].symbol, "AAPL");
     EXPECT_EQ(portfolio.value()[0].quantity, 10);
     EXPECT_DOUBLE_EQ(portfolio.value()[0].avgCost, 190.0);
-    EXPECT_EQ(app_->trades().countByAccount(login_->authSession().accountId), 1);
+    EXPECT_EQ(app_->trades().countByAccount(session_.accountId), 1);
 
-    // 4. Buy thêm 10 @ 210 → qty 20, avg 200
     ASSERT_TRUE(app_->orders().setQuotePrice("AAPL", 210.0).ok());
-    auto buy2 = trading_->buyMarket("AAPL", 10);
+    auto buy2 = app_->orders().placeMarketOrder(session_, "AAPL", OrderSide::Buy, 10);
     ASSERT_TRUE(buy2.ok()) << buy2.message();
     EXPECT_DOUBLE_EQ(buy2.value().fillPrice, 210.0);
 
-    cash = bank_->balance();
+    cash = app_->wallet().balance(session_);
     ASSERT_TRUE(cash.ok());
-    EXPECT_DOUBLE_EQ(cash.value(), 6000.0); // 8100 - 2100
+    EXPECT_DOUBLE_EQ(cash.value(), 6000.0);
 
-    portfolio = trading_->portfolio();
+    portfolio = app_->orders().portfolio(session_);
     ASSERT_TRUE(portfolio.ok());
     ASSERT_EQ(portfolio.value().size(), 1u);
     EXPECT_EQ(portfolio.value()[0].quantity, 20);
     EXPECT_DOUBLE_EQ(portfolio.value()[0].avgCost, 200.0);
 
-    // 5. Sell 5 @ 220 → qty 15, cash += 1100, realized = 100
     ASSERT_TRUE(app_->orders().setQuotePrice("AAPL", 220.0).ok());
-    auto sell = trading_->sellMarket("AAPL", 5);
+    auto sell = app_->orders().placeMarketOrder(session_, "AAPL", OrderSide::Sell, 5);
     ASSERT_TRUE(sell.ok()) << sell.message();
     ASSERT_TRUE(sell.value().realizedPnl.has_value());
-    EXPECT_DOUBLE_EQ(*sell.value().realizedPnl, 100.0); // (220-200)*5
+    EXPECT_DOUBLE_EQ(*sell.value().realizedPnl, 100.0);
 
-    cash = bank_->balance();
+    cash = app_->wallet().balance(session_);
     ASSERT_TRUE(cash.ok());
-    EXPECT_DOUBLE_EQ(cash.value(), 7100.0); // 6000 + 1100
+    EXPECT_DOUBLE_EQ(cash.value(), 7100.0);
 
-    portfolio = trading_->portfolio();
+    portfolio = app_->orders().portfolio(session_);
     ASSERT_TRUE(portfolio.ok());
     ASSERT_EQ(portfolio.value().size(), 1u);
     EXPECT_EQ(portfolio.value()[0].quantity, 15);
     EXPECT_DOUBLE_EQ(portfolio.value()[0].avgCost, 200.0);
 
-    // 6. Sell 1000 → rejected, không đổi cash/position
-    auto oversell = trading_->sellMarket("AAPL", 1000);
+    auto oversell = app_->orders().placeMarketOrder(session_, "AAPL", OrderSide::Sell, 1000);
     EXPECT_FALSE(oversell.ok());
     EXPECT_EQ(oversell.code(), ErrorCode::InsufficientPosition);
 
-    cash = bank_->balance();
+    cash = app_->wallet().balance(session_);
     ASSERT_TRUE(cash.ok());
     EXPECT_DOUBLE_EQ(cash.value(), 7100.0);
 
-    portfolio = trading_->portfolio();
+    portfolio = app_->orders().portfolio(session_);
     ASSERT_TRUE(portfolio.ok());
     ASSERT_EQ(portfolio.value().size(), 1u);
     EXPECT_EQ(portfolio.value()[0].quantity, 15);
 }
 
-TEST_F(Phase2Fixture, Buy_RejectsInsufficientFundsWithoutSideEffects) {
-    ASSERT_EQ(login_->registerWithCredentials("broke", "secret1"), LoginStatus::Success);
-    ASSERT_TRUE(bank_->deposit(100.0).ok());
+TEST_F(Phase2OrderFlowTest, Buy_RejectsInsufficientFundsWithoutSideEffects) {
+    ASSERT_TRUE(registerUser("broke", "secret1").ok());
+    ASSERT_TRUE(app_->wallet().deposit(session_, 100.0).ok());
 
-    auto result = trading_->buyMarket("AAPL", 10); // needs 1900
+    auto result = app_->orders().placeMarketOrder(session_, "AAPL", OrderSide::Buy, 10);
     EXPECT_FALSE(result.ok());
     EXPECT_EQ(result.code(), ErrorCode::InsufficientFunds);
 
-    auto cash = bank_->balance();
+    auto cash = app_->wallet().balance(session_);
     ASSERT_TRUE(cash.ok());
     EXPECT_DOUBLE_EQ(cash.value(), 100.0);
 
-    auto portfolio = trading_->portfolio();
+    auto portfolio = app_->orders().portfolio(session_);
     ASSERT_TRUE(portfolio.ok());
     EXPECT_TRUE(portfolio.value().empty());
-    EXPECT_EQ(app_->trades().countByAccount(login_->authSession().accountId), 0);
+    EXPECT_EQ(app_->trades().countByAccount(session_.accountId), 0);
 }
 
 TEST(Phase2PersistenceTest, RestartApp_KeepsPositions) {
@@ -137,39 +103,33 @@ TEST(Phase2PersistenceTest, RestartApp_KeepsPositions) {
     std::error_code ec;
     std::filesystem::remove(path, ec);
 
+    int accountId = 0;
     {
         auto app = AppBootstrap::open(path);
-        Service::LoggerService& logger = Service::LoggerService::getInstance();
-        Service::LoginService login{logger, app.auth(), app.accounts()};
-        ASSERT_EQ(login.registerWithCredentials("persist_trader", "secret1"),
-                  LoginStatus::Success);
-        Service::BankAccountService bank{logger, app.wallet(), login};
-        Service::TradingService trading{logger, app.orders(), login};
-        ASSERT_TRUE(bank.deposit(10000.0).ok());
-        ASSERT_TRUE(trading.buyMarket("AAPL", 10).ok());
-        login.logout();
+        auto registered = app.auth().registerUser("persist_trader", "secret1");
+        ASSERT_TRUE(registered.ok());
+        accountId = registered.value().accountId;
+        ASSERT_TRUE(app.wallet().deposit(registered.value(), 10000.0).ok());
+        ASSERT_TRUE(
+            app.orders().placeMarketOrder(registered.value(), "AAPL", OrderSide::Buy, 10).ok());
     }
 
     {
-        resetCurrentSession();
         auto app = AppBootstrap::open(path);
-        Service::LoggerService& logger = Service::LoggerService::getInstance();
-        Service::LoginService login{logger, app.auth(), app.accounts()};
-        EXPECT_EQ(login.loginWithCredentials("persist_trader", "secret1"), LoginStatus::Success);
-        Service::TradingService trading{logger, app.orders(), login};
-        Service::BankAccountService bank{logger, app.wallet(), login};
+        auto loggedIn = app.auth().login("persist_trader", "secret1");
+        ASSERT_TRUE(loggedIn.ok());
 
-        auto cash = bank.balance();
+        auto cash = app.wallet().balance(loggedIn.value());
         ASSERT_TRUE(cash.ok());
         EXPECT_DOUBLE_EQ(cash.value(), 8100.0);
 
-        auto portfolio = trading.portfolio();
+        auto portfolio = app.orders().portfolio(loggedIn.value());
         ASSERT_TRUE(portfolio.ok());
         ASSERT_EQ(portfolio.value().size(), 1u);
         EXPECT_EQ(portfolio.value()[0].symbol, "AAPL");
         EXPECT_EQ(portfolio.value()[0].quantity, 10);
         EXPECT_DOUBLE_EQ(portfolio.value()[0].avgCost, 190.0);
-        EXPECT_EQ(app.trades().countByAccount(login.authSession().accountId), 1);
+        EXPECT_EQ(app.trades().countByAccount(accountId), 1);
     }
 
     std::filesystem::remove(path, ec);
